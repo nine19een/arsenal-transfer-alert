@@ -18,7 +18,7 @@ verified_at = "2026-07-29"
 confirmation_required = false
 confirmed = true
 identity_evidence_url = "https://x.com/Arsenal"
-notes = "Men's first-team scope is enforced by the classifier; official X numeric ID is intentionally pending."
+notes = "Official X API numeric ID verification completed; men's first-team scope is enforced by the classifier."
 
 [[sources]]
 key = "david_ornstein"
@@ -33,7 +33,7 @@ verified_at = "2026-07-29"
 confirmation_required = false
 confirmed = true
 identity_evidence_url = "https://www.nytimes.com/athletic/author/david-ornstein/"
-notes = "Candidate handle must be resolved to its numeric ID with the official X API."
+notes = "Official X API numeric ID verification completed for David Ornstein."
 
 [[sources]]
 key = "bbc_sport"
@@ -48,7 +48,7 @@ verified_at = "2026-07-29"
 confirmation_required = false
 confirmed = true
 identity_evidence_url = "https://www.bbc.co.uk/sport/football/37212444"
-notes = "BBC Sport's own page identifies @BBCSport; numeric ID still requires official X API verification."
+notes = "BBC Sport's own page identifies @BBCSport; official X API numeric ID verification completed."
 
 [[sources]]
 key = "sami_mokbel"
@@ -78,7 +78,7 @@ verified_at = "2026-07-29"
 confirmation_required = false
 confirmed = true
 identity_evidence_url = "https://x.com/FabrizioRomano"
-notes = "Candidate handle must be resolved to its numeric ID with the official X API."
+notes = "Official X API numeric ID verification completed for Fabrizio Romano."
 
 [[sources]]
 key = "charles_watts"

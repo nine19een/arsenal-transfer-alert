@@ -2,7 +2,9 @@
 
 - 验证日期：2026-07-29
 - 环境：Windows / Python 3.14.4
-- 外部调用：0 次付费 API，0 次真实 Bark
+- 本轮离线测试外部调用：0 次
+- 受控集成验证：已分别完成真实 X Recent Search、DeepSeek 模型/分类和单次 Bark UTF-8
+  通知验证；凭据、完整请求 URL 和运行数据库均未进入仓库
 
 ## 自动化测试
 
@@ -16,7 +18,7 @@ python -m unittest discover -s tests -v
 结果：
 
 ```text
-Ran 47 tests in < 3s
+Ran 48 tests in < 3s
 OK
 ```
 
@@ -47,15 +49,28 @@ OK
 - 官方 X 数字 ID/用户名定期复核和不匹配熔断；
 - 长期运行时价格核对日期过期会阻止继续付费读取；
 - Tier 0–2 配置边界、`.env.example` 空凭据、日志脱敏和仓库密钥扫描。
+- 10 条来源目录记录均有固定数字 ID 和 `verified` 状态；归档禁用的 Guardian Sport 也保留
+  已验证身份，9 条启用来源全部 live-ready。
 
 ## 其他验证
 
 - `python -m compileall -q src tests`：通过；
-- `python -m arsenal_alert doctor`：配置结构有效，正确报告所有正式运行安全锁；
+- `python -m arsenal_alert --env-file .env.example doctor`：配置结构有效、来源目录
+  live-ready，且模拟模式、Dry-run、付费调用和 Bark 发送安全开关均保持关闭；
 - 免费模拟 Dry-run：读取 9 条模拟 Post，生成 3 条通知，过滤普通训练、女足、宣传、纯
   repost 和与 Arsenal 无关的前球员转会，无效模型结果没有生成通知；
 - `compose.yaml`：使用 PyYAML 6.0.3 成功解析；
 - `git diff --check`：通过（仅有 Windows 未来可能转换 CRLF 的提示）。
+
+## 受控真实链路验证
+
+- X：使用独立 SQLite 数据库执行单轮 Recent Search，确认固定数字 author ID 查询、
+  `-is:retweet`、主题条件、调用量和费用账本按预期工作；
+- DeepSeek：先用 `GET /models` 验证 Key 和 `deepseek-v4-flash`，再在明确费用上限内验证
+  `thinking=disabled`、JSON Output、当前 Arsenal 参与方门和一手性门；
+- Bark：最多一次 HTTP 请求验证生产 JSON POST，确认 `🔴⚪`、中文、英文和换行以 UTF-8
+  原样送达；测试后安全开关保持原值；
+- 本地长运行：健康接口持续返回 `live=true`、`ready=true`，轮询成功且无健康告警。
 
 当前机器没有安装 Docker CLI，因此未在本机实际构建镜像；Dockerfile 和 Compose 文件已做
 静态/语法检查，仍建议在目标服务器首次上线前运行 `docker compose build` 和模拟模式健康检查。

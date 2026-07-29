@@ -7,10 +7,10 @@
 项目没有网页前端。运行时只需要 Python 3.11+ 和一个可持久化的 SQLite 文件；Python
 运行时没有第三方依赖。
 
-> 当前交付状态：模拟链路、测试、容器和运维文件已经完成。正式模式被安全锁主动阻止，
-> 直到官方 X API 返回的 10 个数字用户 ID 被人工复核并写入
-> `config/sources.toml`，且用户确认 The Athletic 应使用哪个官方账号。仓库中没有任何
-> 真实凭据，也没有进行过付费 API 调用或真实 Bark 推送。
+> 当前交付状态：完整链路、测试、容器和运维文件已经完成。10 条来源目录记录的官方 X
+> 数字用户 ID 均已于 2026-07-29 复核；其中 9 条参与实时轮询，已归档的 Guardian Sport
+> 保留记录但禁用。The Athletic 足球账号已经用户确认。项目已完成受控的 X、DeepSeek 和
+> Bark 集成验证，可使用本地 `.env` 进入正式模式；仓库不包含任何真实凭据。
 
 ## 设计摘要
 
@@ -86,26 +86,27 @@ Bark JSON POST（稳定 id=arsenal-transfer-{Post ID}）
 Tier 由 `config/sources.toml` 静态提供，DeepSeek 看不到修改 Tier 的入口。配置只接受 Tier
 0、1、2。
 
-| Tier | 配置名称 | 候选 X 用户名 | 查询方式 | 当前正式状态 |
-|---:|---|---|---|---|
-| 0 | Arsenal Official | `@Arsenal` | 除 repost 外全部 | 等待 X 数字 ID |
-| 1 | David Ornstein | `@David_Ornstein` | Arsenal 主题候选 | 等待 X 数字 ID |
-| 1 | BBC Sport | `@BBCSport` | Arsenal 主题候选 | 等待 X 数字 ID |
-| 1 | Sami Mokbel | `@SamiMokbel81_DM` | Arsenal 主题候选 | 等待 X 数字 ID |
-| 1 | Fabrizio Romano | `@FabrizioRomano` | Arsenal 主题候选 | 等待 X 数字 ID |
-| 2 | Charles Watts | `@charles_watts` | 除 repost 外全部 | 等待 X 数字 ID |
-| 2 | Amy Lawrence | `@amylawrence71` | 除 repost 外全部 | 等待 X 数字 ID |
-| 2 | James McNicholas / Gunnerblog | `@gunnerblog` | 除 repost 外全部 | 等待 X 数字 ID |
-| 2 | The Guardian | `@guardian_sport` | Arsenal 主题候选 | 等待 X 数字 ID |
-| 2 | The Athletic | `@TheAthleticFC`（候选） | Arsenal 主题候选 | **等待用户确认及数字 ID** |
+| Tier | 配置名称 | X 用户名 | 数字 user_id | 查询方式 | 当前状态 |
+|---:|---|---|---:|---|---|
+| 0 | Arsenal Official | `@Arsenal` | `34613288` | 除 repost 外全部 | 已验证、启用 |
+| 1 | David Ornstein | `@David_Ornstein` | `46875124` | Arsenal 主题候选 | 已验证、启用 |
+| 1 | BBC Sport | `@BBCSport` | `265902729` | Arsenal 主题候选 | 已验证、启用 |
+| 1 | Sami Mokbel | `@SamiMokbel_BBC` | `193221420` | Arsenal 主题候选 | 已验证、启用 |
+| 1 | Fabrizio Romano | `@FabrizioRomano` | `330262748` | Arsenal 主题候选 | 已验证、启用 |
+| 2 | Charles Watts | `@charles_watts` | `305734622` | 除 repost 外全部 | 已验证、启用 |
+| 2 | Amy Lawrence | `@amylawrence71` | `957528097` | 除 repost 外全部 | 已验证、启用 |
+| 2 | James McNicholas / Gunnerblog | `@gunnerblog` | `14016912` | 除 repost 外全部 | 已验证、启用 |
+| 2 | The Guardian | `@guardian_sport` | `46403451` | 不参与实时查询 | 已验证、归档禁用 |
+| 2 | The Athletic | `@TheAthleticFC` | `970939705629069312` | Arsenal 主题候选 | 已验证、用户已确认、启用 |
 
-BBC 自己的转会截止日页面指向 `@BBCSport`，The Guardian 自己的作者页指向
-`@guardian_sport`。The Athletic 同时存在通用品牌账号和足球账号，所以项目没有自行猜测：
-`@TheAthleticFC` 只是候选，`confirmed=false` 会阻止正式启动。
+BBC Sport、Sami Mokbel 的 BBC 账号和其他来源均已通过官方 X API 固定数字 ID。
+`@guardian_sport` 是已验证的 Guardian 官方体育账号，但该账号已经归档，不再参与实时
+轮询。The Athletic 的足球官方账号 `@TheAthleticFC` 已完成人工确认；配置保留
+`confirmation_required=true` 作为审计记录，同时设置 `confirmed=true`。
 
 ### 成本和召回率的明确取舍
 
-X 当前按返回的 Post 资源计费。若完整读取 BBC Sport、Guardian、The Athletic、Romano
+X 当前按返回的 Post 资源计费。若完整读取 BBC Sport、The Athletic、Romano
 等账号的每一条内容，10 美元上限很可能无法维持一个月。因此默认配置：
 
 - Arsenal 官方、Charles Watts、Amy Lawrence、Gunnerblog：读取其全部非 repost 内容；
@@ -192,10 +193,11 @@ DeepSeek 正式调用；只有同时满足 `DRY_RUN=false` 与 `BARK_SEND_ENABLE
 价格会变化，正式模式要求价格核对日期在 7 天内；已运行服务到期后也会停止轮询，更新
 `.env` 日期和价格并重启才会继续。
 
-### 2. 用官方 X API 固定数字用户 ID
+### 2. 用官方 X API 复核数字用户 ID
 
-先保持 Bark 关闭。下列命令会读取 10 个 User 资源；按上述当前单价估算约 `$0.10`，
-因此运行前需要明确批准这次付费调用：
+当前目录的 10 条记录均已固定数字 ID；Guardian Sport 因归档而禁用，其余 9 条是正式轮询
+来源。以下命令仅在用户名、雇主或来源配置变化时重新核验。先保持 Bark 关闭；当前命令只
+读取启用来源，按 9 个 User 资源和上述单价估算约 `$0.09`，运行前仍需明确批准付费调用：
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -218,13 +220,13 @@ X_PRICE_VERIFIED_AT=YYYY-MM-DD
 
 - API 返回的 `id`、`username`、名称、affiliation、parody 等字段；
 - `sources.toml` 内的雇主/官方证据链接；
-- The Athletic 具体账号的用户确认。
+- 需要人工确认的媒体账号是否仍与审计记录一致。
 
-确认后，逐项把数字 ID 写入 `user_id`，将 `identity_status` 改为 `verified`，并把
-`verified_at` 改为核对当天；The Athletic 获得确认后再设 `confirmed=true`。
+如账号发生变化，人工确认后再更新对应的 `user_id`、`identity_status` 和 `verified_at`；
+命令只生成报告，不会自动改写来源配置或 Tier。
 
 正式服务每 168 小时按数字 ID 通过官方 X API 复查一次当前用户名，默认约
-`10 × $0.010 × 4.35 = $0.44/月`。若用户名变化、ID 缺失或账号被标为 parody，所有 X
+`9 × $0.010 × 4.35 = $0.39/月`。若用户名变化、ID 缺失或账号被标为 parody，所有 X
 轮询都会停止，不会自行换账号。
 
 ### 3. DeepSeek
@@ -325,7 +327,7 @@ python -m arsenal_alert cost-report
 示例：
 
 - 1,000 个 Post 资源约 `$5.00`；
-- 10 个账号每周复核约 `$0.44/月`；
+- 9 个启用账号每周复核约 `$0.39/月`；
 - 在 `$10` 内可留给 Post 的理论余量约 1,900 条，实际以 Console 为准。
 
 应用保护：
@@ -387,9 +389,9 @@ BARK_SEND_ENABLED=true
 DB_PATH=/data/arsenal-alert.sqlite3
 ```
 
-实际 24 小时运行仍需要：一台持续在线且能访问 X、DeepSeek、Bark 的主机，持久磁盘，
-三个服务的有效凭据/余额，以及用户对 The Athletic 账号的确认。本仓库没有外部服务器权限，
-所以没有部署到互联网。
+实际 24 小时运行仍需要：一台持续在线且能访问 X、DeepSeek、Bark 的主机、持久磁盘，
+以及三个服务的有效凭据/余额。来源目录已经身份就绪；仓库不绑定特定云平台，也不会提交
+本地凭据、运行数据库或日志。
 
 ## 健康检查和日志
 
@@ -428,8 +430,9 @@ python -m arsenal_alert resolve-notification 123456789 `
 
 ### `source catalog is not live-ready`
 
-这是预期安全锁。先运行官方 X source verification，人工写入数字 ID；The Athletic 还需要
-用户确认。不要使用第三方 ID 查询站替代正式复核。
+当前提交的来源目录已经 live-ready。如果出现此错误，说明某个启用来源的数字 ID、
+`identity_status` 或人工确认状态被改成了未就绪值。先运行离线 `doctor` 定位条目；确需
+重新核验时只使用官方 X source verification，不要使用第三方 ID 查询站。
 
 ### X 401/403
 

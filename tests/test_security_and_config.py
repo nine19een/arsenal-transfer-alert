@@ -186,6 +186,15 @@ class SecurityAndConfigTests(unittest.TestCase):
         self.assertTrue(athletic.confirmed)
         self.assertEqual("970939705629069312", athletic.user_id)
 
+    def test_source_directory_has_no_pending_identity_records(self) -> None:
+        catalog = SourceCatalog.load(ROOT / "config" / "sources.toml")
+        pending = [
+            source.key
+            for source in catalog.sources
+            if not source.user_id or source.identity_status != "verified"
+        ]
+        self.assertEqual([], pending)
+
     def test_long_running_live_mode_rejects_stale_price_verification(self) -> None:
         settings = replace(
             settings_for(ROOT / "data" / "unused-test.sqlite3"),
