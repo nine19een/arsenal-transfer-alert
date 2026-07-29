@@ -1,0 +1,156 @@
+catalog_version = 1
+
+# This is deliberately a narrow candidate query. It keeps general-media reads
+# within the $10 budget while still covering the normal Arsenal identifiers.
+# Change only after a paid dry-run and cost/recall review.
+topic_query = "Arsenal OR #AFC OR Gunners"
+
+[[sources]]
+key = "arsenal"
+name = "Arsenal Official"
+tier = 0
+username = "Arsenal"
+user_id = "34613288"
+enabled = true
+query_mode = "all"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://x.com/Arsenal"
+notes = "Men's first-team scope is enforced by the classifier; official X numeric ID is intentionally pending."
+
+[[sources]]
+key = "david_ornstein"
+name = "David Ornstein"
+tier = 1
+username = "David_Ornstein"
+user_id = "46875124"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.nytimes.com/athletic/author/david-ornstein/"
+notes = "Candidate handle must be resolved to its numeric ID with the official X API."
+
+[[sources]]
+key = "bbc_sport"
+name = "BBC Sport"
+tier = 1
+username = "BBCSport"
+user_id = "265902729"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.bbc.co.uk/sport/football/37212444"
+notes = "BBC Sport's own page identifies @BBCSport; numeric ID still requires official X API verification."
+
+[[sources]]
+key = "sami_mokbel"
+name = "Sami Mokbel"
+tier = 1
+username = "SamiMokbel_BBC"
+user_id = "193221420"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://x.com/SamiMokbel_BBC"
+notes = "官方 X API 已确认该账号为 BBC Sport Senior Football Correspondent Sami Mokbel"
+
+[[sources]]
+key = "fabrizio_romano"
+name = "Fabrizio Romano"
+tier = 1
+username = "FabrizioRomano"
+user_id = "330262748"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://x.com/FabrizioRomano"
+notes = "Candidate handle must be resolved to its numeric ID with the official X API."
+
+[[sources]]
+key = "charles_watts"
+name = "Charles Watts"
+tier = 2
+username = "charles_watts"
+user_id = "305734622"
+enabled = true
+query_mode = "all"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://x.com/charles_watts"
+notes = "Arsenal-focused account; all authored posts except pure reposts are read."
+
+[[sources]]
+key = "amy_lawrence"
+name = "Amy Lawrence"
+tier = 2
+username = "amylawrence71"
+user_id = "957528097"
+enabled = true
+query_mode = "all"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://x.com/amylawrence71"
+notes = "Arsenal-focused account; all authored posts except pure reposts are read."
+
+[[sources]]
+key = "gunnerblog"
+name = "James McNicholas / Gunnerblog"
+tier = 2
+username = "gunnerblog"
+user_id = "14016912"
+enabled = true
+query_mode = "all"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.nytimes.com/athletic/author/james-mcnicholas/"
+notes = "The handle is treated as the James McNicholas/Gunnerblog source, not as a separate source."
+
+[[sources]]
+key = "guardian"
+name = "The Guardian"
+tier = 2
+username = "guardian_sport"
+user_id = "46403451"
+enabled = false
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.theguardian.com/profile/guardian-sport"
+notes = "Official @guardian_sport account verified but archived; retained in the source catalog and excluded from real-time polling."
+
+[[sources]]
+key = "the_athletic"
+name = "The Athletic"
+tier = 2
+username = "TheAthleticFC"
+user_id = "970939705629069312"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-07-29"
+confirmation_required = true
+confirmed = true
+identity_evidence_url = "https://x.com/TheAthleticFC"
+notes = "User confirmed @TheAthleticFC as the required official football account; official X API numeric ID verification completed."

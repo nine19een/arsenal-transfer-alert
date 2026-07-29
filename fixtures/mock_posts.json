@@ -1,0 +1,68 @@
+[
+  {
+    "id": "1001",
+    "source_key": "david_ornstein",
+    "text": "Arsenal have opened talks with Northbridge FC over a possible deal for Mateo Silva. No agreement has been reached.",
+    "created_at": "2026-07-29T01:01:00Z"
+  },
+  {
+    "id": "1002",
+    "source_key": "david_ornstein",
+    "text": "Arsenal trained at London Colney this morning before Saturday's friendly.",
+    "created_at": "2026-07-29T01:02:00Z"
+  },
+  {
+    "id": "1003",
+    "source_key": "fabrizio_romano",
+    "text": "RT @OtherAccount: Arsenal are interested in Mateo Silva.",
+    "created_at": "2026-07-29T01:03:00Z",
+    "referenced_tweets": [
+      {
+        "type": "retweeted",
+        "id": "9001"
+      }
+    ]
+  },
+  {
+    "id": "1004",
+    "source_key": "charles_watts",
+    "text": "Important addition: Arsenal's talks are for a permanent transfer, not a loan, but negotiations remain at an early point.",
+    "created_at": "2026-07-29T01:04:00Z",
+    "referenced_tweets": [
+      {
+        "type": "quoted",
+        "id": "9002"
+      }
+    ]
+  },
+  {
+    "id": "1005",
+    "source_key": "fabrizio_romano",
+    "text": "Arsenal are in talks for Mateo Silva. Negotiations are ongoing; there is no agreement yet.",
+    "created_at": "2026-07-29T01:05:00Z"
+  },
+  {
+    "id": "1006",
+    "source_key": "arsenal",
+    "text": "Our women's first team has completed the signing of Sofia Example.",
+    "created_at": "2026-07-29T01:06:00Z"
+  },
+  {
+    "id": "1007",
+    "source_key": "bbc_sport",
+    "text": "Listen to our latest podcast and read our full Arsenal season preview.",
+    "created_at": "2026-07-29T01:07:00Z"
+  },
+  {
+    "id": "1008",
+    "source_key": "sami_mokbel",
+    "text": "Arsenal may consider a move for a midfielder if a current player leaves.",
+    "created_at": "2026-07-29T01:08:00Z"
+  },
+  {
+    "id": "1009",
+    "source_key": "the_athletic",
+    "text": "Former Arsenal defender Takehiro Tomiyasu is training with Crystal Palace as he considers a possible move after leaving Ajax.",
+    "created_at": "2026-07-29T01:09:00Z"
+  }
+]

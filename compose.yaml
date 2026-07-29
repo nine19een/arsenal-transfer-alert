@@ -1,0 +1,35 @@
+services:
+  arsenal-transfer-alert:
+    build:
+      context: .
+    image: arsenal-transfer-alert:local
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      DB_PATH: /data/arsenal-alert.sqlite3
+      SOURCE_CONFIG_PATH: /app/config/sources.toml
+      MOCK_FEED_PATH: /app/fixtures/mock_posts.json
+      MOCK_CLASSIFICATIONS_PATH: /app/fixtures/mock_classifications.json
+      HEALTH_HOST: 0.0.0.0
+      HEALTH_PORT: 8080
+    volumes:
+      - ./data:/data
+      - ./config:/app/config:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "python", "-m", "arsenal_alert", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

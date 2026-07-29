@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arsenal-transfer-alert"
+version = "0.1.0"
+description = "Low-cost Arsenal transfer alerts from fixed Tier 0-2 X sources."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Arsenal Transfer Alert contributors" }]
+dependencies = []
+
+[project.scripts]
+arsenal-transfer-alert = "arsenal_alert.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
