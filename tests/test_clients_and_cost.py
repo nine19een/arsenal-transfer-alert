@@ -12,7 +12,7 @@ from unittest.mock import patch
 from arsenal_alert.bark import BarkClient
 from arsenal_alert.cost import XBudgetExceeded, XBudgetGuard
 from arsenal_alert.db import StateStore
-from arsenal_alert.deepseek import DeepSeekClassifier
+from arsenal_alert.deepseek import SYSTEM_PROMPT, DeepSeekClassifier
 from arsenal_alert.http_transport import HttpResponse, UrllibTransport
 from arsenal_alert.mock import MockXClient
 from arsenal_alert.models import NotificationPayload, QueryCursor, QuerySpec, utc_now
@@ -320,6 +320,20 @@ class ClientAndCostTests(unittest.TestCase):
         snapshot = self.store.cost_snapshot(utc_now() - timedelta(days=1))
         self.assertEqual(1, snapshot.deepseek_requests)
         self.assertGreater(snapshot.deepseek_estimated_usd, Decimal("0"))
+
+    def test_prompt_treats_completed_transfer_reaction_as_background(self) -> None:
+        self.assertIn(
+            "Completed-transfer commentary is not a current transfer event",
+            SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            'The words "departure",\n"signing", "joined", or "left" alone',
+            SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "This rule does not apply when the Post itself announces or confirms the move",
+            SYSTEM_PROMPT,
+        )
 
 
 if __name__ == "__main__":

@@ -28,6 +28,8 @@
 - Replies 和 Quote Posts 没有被查询排除，DeepSeek 以作者自己的正文为判断主体；
 - `tweet.fields` 包含 `entities`，仅使用 X API 已返回的 `expanded_url`/`unwound_url`
   规范化外部文章链接和生成原始报道指纹，不访问或抓取文章网页。
+- `tweet.fields` 还显式请求 `edit_history_tweet_ids`。X 编辑版本会获得不同 Post ID；
+  若编辑链中较早版本已经进入通知表，后续版本按同一逻辑 Post 持久化抑制。
 
 没有采用 Filtered Stream，是因为仍需 Recent Search 做停机补查；单独维护两套实时数据路径会
 增加故障面，60 秒轮询已经满足目标。

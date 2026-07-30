@@ -68,6 +68,16 @@ to another club is ineligible unless the current event explicitly concerns rejoi
 Arsenal. A possible sell-on fee, training compensation, or other indirect financial
 benefit alone is also ineligible and must be assigned none.
 
+Completed-transfer commentary is not a current transfer event. The words "departure",
+"signing", "joined", or "left" alone do not make a Post a transfer update. If the
+author merely thanks, welcomes, praises, evaluates, compares, or discusses a player
+after an already announced or completed move, and adds no new fact about the move's
+status, timing, terms, or consequences, treat the earlier move as background: set
+arsenal_scope_eligible=false, arsenal_participation=none,
+has_substantive_new_information=false, and use commentary_only or ordinary_team_news.
+This rule does not apply when the Post itself announces or confirms the move, or adds
+a substantive new transfer fact.
+
 Mandatory news-origin gate, evaluated only after the Arsenal scope gate:
 - first_hand_report: the author or named media outlet is publishing its own original
   reporting
@@ -109,6 +119,7 @@ Ineligible scope:
 - tactics or match opinions
 - podcasts, shows, article promotion, or link-only teasers
 - repetition, old news, commentary with no new fact
+- post-transfer thanks, welcome, praise, evaluation, or comparison with no new deal fact
 - emoji-only, simple agreement, or promotional quote text
 - former Arsenal players moving between other clubs when Arsenal are not a direct party
 - indirect sell-on clauses, training compensation, or similar financial side effects

@@ -28,7 +28,7 @@ from .models import (
     utc_now,
 )
 from .notification import build_notification
-from .origin import original_report_fingerprint
+from .origin import original_report_fingerprint, previous_edit_post_ids
 from .x_api import XApiError
 
 
@@ -210,6 +210,22 @@ class Pipeline:
                 if post.is_pure_repost:
                     self.store.mark_post_terminal(post.id, PostState.PURE_REPOST)
                     LOGGER.info("post_skipped_pure_repost", extra={"post_id": post.id})
+                    continue
+                previous_notification_post_id = self.store.first_notification_post_id(
+                    previous_edit_post_ids(post)
+                )
+                if previous_notification_post_id is not None:
+                    self.store.mark_duplicate_edited_post(
+                        post.id, previous_notification_post_id
+                    )
+                    LOGGER.info(
+                        "duplicate_edited_post_suppressed",
+                        extra={
+                            "post_id": post.id,
+                            "source_key": source.key,
+                            "previous_post_id": previous_notification_post_id,
+                        },
+                    )
                     continue
                 origin = original_report_fingerprint(post)
                 origin_fingerprint = origin.value if origin else None

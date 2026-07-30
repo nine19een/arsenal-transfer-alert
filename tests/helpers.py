@@ -75,9 +75,13 @@ def post(
     reference_type: str | None = None,
     referenced_post_id: str = "9000",
     article_url: str | None = None,
+    edit_history_ids: tuple[str, ...] | None = None,
 ) -> Post:
     references = (reference_type,) if reference_type else ()
-    raw: dict[str, Any] = {"_mock_source_key": source_key}
+    raw: dict[str, Any] = {
+        "_mock_source_key": source_key,
+        "edit_history_tweet_ids": list(edit_history_ids or (post_id,)),
+    }
     if reference_type:
         raw["referenced_tweets"] = [
             {"type": reference_type, "id": referenced_post_id}

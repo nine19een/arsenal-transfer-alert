@@ -1,6 +1,6 @@
 # 验证结果
 
-- 验证日期：2026-07-29
+- 验证日期：2026-07-30
 - 环境：Windows / Python 3.14.4
 - 本轮离线测试外部调用：0 次
 - 受控集成验证：已分别完成真实 X Recent Search、DeepSeek 模型/分类和单次 Bark UTF-8
@@ -18,7 +18,7 @@ python -m unittest discover -s tests -v
 结果：
 
 ```text
-Ran 48 tests in < 3s
+Ran 50 tests in < 3s
 OK
 ```
 
@@ -26,6 +26,8 @@ OK
 
 - Tier 1 原创转会、普通新闻、纯 repost、实质性引用帖；
 - Post ID 永久去重、不同记者不做转会事件合并；
+- X 同一逻辑 Post 的编辑版本使用 `edit_history_tweet_ids` 去重；较早版本已进入通知表后，
+  后续版本在当前进程和重启后都不会再次调用 DeepSeek 或 Bark；
 - 原始报道指纹优先使用被引用 Post ID，其次使用去除追踪参数的规范化文章 URL；
 - 同一文章的重复分发在当前进程及重启后都被抑制，独立确认和实质性新增仍可分别通知；
 - The Athletic 自有独家、gunnerblog 纯 Repost、无新增转述、独立确认和新增报价细节的
@@ -46,6 +48,8 @@ OK
 - 富安健洋等前 Arsenal 球员在其他俱乐部间转会、普通前球员转会及仅有二次转会分成会被
   过滤；明确回归 Arsenal、现役球员离队、Arsenal 引援及 Arsenal 所有权下的外租球员变化
   可保留；
+- 已完成转会后的感谢、欢迎、评价或比较即使出现 departure/signing 等词，只要没有新的
+  交易事实仍会作为背景评论过滤；Post 本身的官宣或新进展不受该规则误伤；
 - 官方 X 数字 ID/用户名定期复核和不匹配熔断；
 - 长期运行时价格核对日期过期会阻止继续付费读取；
 - Tier 0–2 配置边界、`.env.example` 空凭据、日志脱敏和仓库密钥扫描。

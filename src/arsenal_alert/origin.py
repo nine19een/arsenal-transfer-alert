@@ -61,6 +61,28 @@ def original_report_fingerprint(post: Post) -> OriginalReportFingerprint | None:
     )
 
 
+def previous_edit_post_ids(post: Post) -> tuple[str, ...]:
+    """Return earlier X Post IDs from the same edit history.
+
+    X assigns a new Post ID to each edited version. The history also contains
+    the current ID, so only distinct predecessor IDs are returned.
+    """
+
+    history = post.raw.get("edit_history_tweet_ids")
+    if not isinstance(history, list):
+        return ()
+    previous: list[str] = []
+    for item in history:
+        if (
+            isinstance(item, str)
+            and item.isdigit()
+            and item != post.id
+            and item not in previous
+        ):
+            previous.append(item)
+    return tuple(previous)
+
+
 def normalized_article_urls(post: Post) -> tuple[str, ...]:
     entities = post.raw.get("entities")
     if not isinstance(entities, dict):

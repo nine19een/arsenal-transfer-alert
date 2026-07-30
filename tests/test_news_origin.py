@@ -217,6 +217,66 @@ class NewsOriginGateTests(unittest.TestCase):
         self.assertEqual([], second_notifier.deliveries)
         self.assertEqual(PostState.FILTERED, second_store.post_state("6202"))
 
+    def test_edited_x_post_is_suppressed_across_restart(self) -> None:
+        first_id = "6251"
+        edited_id = "6252"
+        first = post(
+            first_id,
+            "sami_mokbel",
+            "Arsenal talks are moving forward and an agreement",
+            edit_history_ids=(first_id,),
+        )
+        first_store = StateStore(self.database)
+        first_notifier = PlannedNotifier()
+        first_pipeline = Pipeline(
+            settings_for(self.database),
+            catalog(),
+            first_store,
+            StaticXClient([first]),
+            DecisionClassifier({first_id: eligible()}),
+            first_notifier,
+        )
+        first_pipeline.run_cycle()
+        first_store.close()
+
+        edited = post(
+            edited_id,
+            "sami_mokbel",
+            "Arsenal talks are moving forward and an agreement is possible.",
+            article_url="https://www.bbc.co.uk/sport/football/articles/example",
+            edit_history_ids=(first_id, edited_id),
+        )
+        second_store = StateStore(self.database)
+        self.addCleanup(second_store.close)
+        second_classifier = DecisionClassifier({})
+        second_notifier = PlannedNotifier()
+        second_pipeline = Pipeline(
+            settings_for(self.database),
+            catalog(),
+            second_store,
+            StaticXClient([edited]),
+            second_classifier,
+            second_notifier,
+        )
+
+        second_pipeline.run_cycle()
+
+        self.assertEqual([first_id], [item.post_id for item in first_notifier.deliveries])
+        self.assertEqual([], second_classifier.calls)
+        self.assertEqual([], second_notifier.deliveries)
+        self.assertEqual(PostState.FILTERED, second_store.post_state(edited_id))
+        row = second_store._connection.execute(
+            """
+            SELECT origin_fingerprint, last_error
+            FROM posts
+            WHERE post_id = ?
+            """,
+            (edited_id,),
+        ).fetchone()
+        self.assertEqual(f"edit:{first_id}", row["origin_fingerprint"])
+        self.assertEqual("duplicate_edited_post", row["last_error"])
+        self.assertEqual(1, second_store.notification_count())
+
     def test_substantive_new_detail_bypasses_same_url_suppression(self) -> None:
         first = post(
             "6301",

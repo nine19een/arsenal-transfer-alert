@@ -466,6 +466,35 @@ class StateStore:
             ).fetchone()
         return self._stored_post(row) if row is not None else None
 
+    def first_notification_post_id(self, post_ids: Iterable[str]) -> str | None:
+        identifiers = tuple(dict.fromkeys(post_ids))
+        if not identifiers:
+            return None
+        placeholders = ",".join("?" for _ in identifiers)
+        with self._lock:
+            row = self._connection.execute(
+                f"""
+                SELECT post_id
+                FROM notifications
+                WHERE post_id IN ({placeholders})
+                ORDER BY created_at ASC, post_id ASC
+                LIMIT 1
+                """,
+                identifiers,
+            ).fetchone()
+        return str(row["post_id"]) if row is not None else None
+
+    def mark_duplicate_edited_post(
+        self, post_id: str, previous_notification_post_id: str
+    ) -> None:
+        self._update_post(
+            post_id,
+            state=PostState.FILTERED.value,
+            origin_fingerprint=f"edit:{previous_notification_post_id}",
+            next_classification_at=None,
+            last_error="duplicate_edited_post",
+        )
+
     def assign_source(self, post_id: str, source_key: str) -> None:
         self._update_post(post_id, source_key=source_key)
 

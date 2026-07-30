@@ -63,8 +63,8 @@ class XApiClient:
             "max_results": str(self.settings.x_max_results),
             "sort_order": "recency",
             "tweet.fields": (
-                "author_id,created_at,referenced_tweets,in_reply_to_user_id,"
-                "conversation_id,lang,note_tweet,entities"
+                "author_id,created_at,edit_history_tweet_ids,referenced_tweets,"
+                "in_reply_to_user_id,conversation_id,lang,note_tweet,entities"
             ),
         }
         if cursor.since_id:

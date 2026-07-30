@@ -22,6 +22,7 @@ X Recent Search（60 秒轮询，7 天补查）
         │
         ├─ 数字 author_id 白名单校验
         ├─ 纯 repost 硬过滤
+        ├─ X 编辑链逻辑 Post 去重
         ▼
 DeepSeek V4 Flash（thinking=disabled，JSON Output）
         │
@@ -43,6 +44,9 @@ Bark JSON POST（稳定 id=arsenal-transfer-{Post ID}）
 
 - X 每一页先持久化，全部分页成功后才推进游标。若中途崩溃，下次会重新读取但不会重复处理。
 - `posts.post_id` 和 `notifications.post_id` 都是数据库主键；同一 X Post ID 永远只有一条通知。
+- X 编辑会产生新的 Post ID；程序使用官方 `edit_history_tweet_ids` 识别同一逻辑 Post。只要
+  较早版本已经进入通知表，后续编辑版本就会在调用 DeepSeek 和 Bark 前持久化抑制，重启后
+  仍然有效。
 - 不做转会事件级合并。Ornstein 和 Romano 各自独立报道同一交易时仍分别处理。
 - DeepSeek 以白名单作者自己的正文为判断主体。数据库中已见的被引用 Post 正文只作为“是否
   新增事实”的对照材料，不会当作当前作者亲自报道的事实。
@@ -51,6 +55,8 @@ Bark JSON POST（稳定 id=arsenal-transfer-{Post ID}）
   `none`。本地严格校验禁止 `arsenal_participation=none` 的结果进入通知队列。
 - “前 Arsenal 球员”、履历背景、旧闻、比较以及仅有二次转会分成等间接关系都不算 Arsenal
   参与当前交易；只有明确重新加盟 Arsenal 才可按引援处理。
+- 已完成转会后的感谢、欢迎、评价、表现讨论或球员比较不算新的转会事实；只有 Post 本身
+  官宣、确认交易，或补充新的状态、时间、条款或后续影响时才继续判断。
 - 白名单身份不等于一手报道。模型必须返回 `first_hand_report`、
   `independent_confirmation`、`substantive_new_detail`、`attributed_relay`、
   `commentary_only` 或 `unclear_origin`；只有前三种可能进入通知。
