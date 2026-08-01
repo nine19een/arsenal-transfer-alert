@@ -18,7 +18,7 @@ python -m unittest discover -s tests -v
 结果：
 
 ```text
-Ran 51 tests in < 3s
+Ran 56 tests in < 3s
 OK
 ```
 
@@ -41,10 +41,12 @@ OK
 - 免费模拟源不会污染真实 X 调用量或费用统计；
 - 查询配置变化后的首次失败不会误沿用旧查询游标；
 - DeepSeek V4 Flash 请求显式关闭 thinking 并使用 JSON Output；
-- DeepSeek 输出必须声明 Arsenal 当前交易参与角色，本地拒绝
-  `eligible=true` 与 `arsenal_participation=none` 的矛盾结果；
-- DeepSeek 还必须声明 `arsenal_scope_eligible` 和严格枚举 `news_origin`；转述、评论及
+- DeepSeek 输出必须声明目标俱乐部当前交易参与角色，本地拒绝
+  `eligible=true` 与 `club_participation=none` 的矛盾结果；
+- DeepSeek 还必须声明 `club_scope_eligible` 和严格枚举 `news_origin`；转述、评论及
   来源不明均失败关闭，白名单身份本身不会绕过一手性门；
+- Arsenal 默认配置快照、第二支球队的查询/提示词/通知参数、v1 配置与旧分类 JSON 兼容，
+  以及 X 查询操作符注入拦截；
 - 富安健洋等前 Arsenal 球员在其他俱乐部间转会、普通前球员转会及仅有二次转会分成会被
   过滤；明确回归 Arsenal、现役球员离队、Arsenal 引援及 Arsenal 所有权下的外租球员变化
   可保留；

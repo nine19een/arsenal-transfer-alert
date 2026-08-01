@@ -46,7 +46,8 @@ def build_runtime(settings: Settings) -> Runtime:
     try:
         if settings.app_mode is AppMode.LIVE:
             x_client = XApiClient(settings, store)
-            classifier = DeepSeekClassifier(settings, store)
+            assert catalog.club is not None
+            classifier = DeepSeekClassifier(settings, store, catalog.club)
             notifier = BarkClient(settings, store)
             identity_monitor = SourceIdentityMonitor(settings, catalog, store, x_client)
             classifier.verify_model()

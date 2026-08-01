@@ -255,6 +255,7 @@ class Pipeline:
                     post,
                     source,
                     result.classification,
+                    club=self.catalog.club,
                     group=self.settings.bark_group,
                     level=self.settings.bark_level,
                     sound=self.settings.bark_sound,

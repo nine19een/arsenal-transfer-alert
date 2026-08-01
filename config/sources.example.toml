@@ -1,0 +1,46 @@
+catalog_version = 2
+
+# Point SOURCE_CONFIG_PATH at your copied file and use a club-specific DB_PATH;
+# do not reuse one SQLite database while switching between club configurations.
+# Only these three club fields are required. Terms are joined safely with OR;
+# phrases such as "Example United" are quoted automatically.
+[club]
+key = "example-fc"
+name = "Example FC"
+query_terms = ["Example FC", "#EFC"]
+
+# Optional club presentation fields:
+# notification_title_prefix = "⚽"
+# notification_group = "Example FC Transfer Alert"
+# notification_id_prefix = "example-fc-transfer"
+# output_language = "English"
+# timezone_utc_offset_minutes = 0
+# timezone_label = "UTC"
+# source_label = "Source"
+# time_label = "Time"
+# open_post_text = "Open the original post on X."
+
+# Every source needs only key, display name, Tier, X username, and query mode.
+# Use query_mode="all" for club-specific accounts and "topic" for broad accounts.
+[[sources]]
+key = "example_official"
+name = "Example FC Official"
+tier = 0
+username = "ExampleFC"
+query_mode = "all"
+
+[[sources]]
+key = "trusted_reporter"
+name = "Trusted Reporter"
+tier = 1
+username = "TrustedReporter"
+query_mode = "topic"
+
+# Before live polling, verify every enabled X identity and add these fields to
+# each source. `arsenal-transfer-alert verify-sources` helps resolve numeric IDs;
+# reliability/Tier and account ownership still require your manual judgment.
+# user_id = "123456789"
+# identity_status = "verified"
+# verified_at = "2026-08-01"
+# identity_evidence_url = "https://x.com/ExampleFC"
+# confirmed = true

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import tomllib
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -9,7 +10,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Mapping
 
-from .models import AppMode, QueryMode, QuerySpec, Source
+from .models import AppMode, ClubProfile, QueryMode, QuerySpec, Source
 
 
 class ConfigurationError(ValueError):
@@ -198,7 +199,7 @@ class Settings:
             deepseek_output_usd_per_m=_decimal(source, "DEEPSEEK_OUTPUT_USD_PER_M"),
             bark_base_url=source.get("BARK_BASE_URL", "").strip().rstrip("/"),
             bark_device_key=source.get("BARK_DEVICE_KEY", "").strip(),
-            bark_group=source.get("BARK_GROUP", "Arsenal Transfer Alert").strip(),
+            bark_group=source.get("BARK_GROUP", "").strip(),
             bark_level=source.get("BARK_LEVEL", "active").strip(),
             bark_sound=source.get("BARK_SOUND", "").strip(),
             bark_http_timeout_seconds=_int(source, "BARK_HTTP_TIMEOUT_SECONDS", 15),
@@ -312,11 +313,167 @@ class Settings:
             raise ConfigurationError(f"{name} is stale; re-check the official pricing page")
 
 
+_CLUB_KEY_PATTERN = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*\Z")
+_X_USERNAME_PATTERN = re.compile(r"[A-Za-z0-9_]{1,15}\Z")
+_QUERY_OPERATOR_TERMS = frozenset({"and", "or", "not"})
+_QUERY_OPERATOR_PREFIXES = (
+    "from:",
+    "to:",
+    "is:",
+    "-is:",
+    "lang:",
+    "url:",
+    "has:",
+)
+
+
+def _legacy_arsenal_profile(topic_query: str) -> ClubProfile:
+    return ClubProfile(
+        key="arsenal",
+        name="Arsenal",
+        query_terms=("Arsenal", "#AFC", "Gunners"),
+        topic_query=topic_query,
+        notification_title_prefix="🔴⚪",
+        notification_group="Arsenal Transfer Alert",
+        notification_id_prefix="arsenal-transfer",
+        output_language="Simplified Chinese",
+        timezone_utc_offset_minutes=480,
+        timezone_label="北京时间",
+        source_label="来源",
+        time_label="时间",
+        open_post_text="点击通知打开 X 原帖。",
+    )
+
+
+def _parse_club_profile(raw: object) -> ClubProfile:
+    if not isinstance(raw, dict):
+        raise ConfigurationError("catalog version 2 requires a [club] table")
+    required = {"key", "name", "query_terms"}
+    optional = {
+        "notification_title_prefix",
+        "notification_group",
+        "notification_id_prefix",
+        "output_language",
+        "timezone_utc_offset_minutes",
+        "timezone_label",
+        "source_label",
+        "time_label",
+        "open_post_text",
+    }
+    missing = required - set(raw)
+    extra = set(raw) - required - optional
+    if missing or extra:
+        raise ConfigurationError(
+            "club fields mismatch; "
+            f"missing={sorted(missing)}, extra={sorted(extra)}"
+        )
+
+    key = raw["key"]
+    name = raw["name"]
+    query_terms_raw = raw["query_terms"]
+    if not isinstance(key, str) or not _CLUB_KEY_PATTERN.fullmatch(key.strip()):
+        raise ConfigurationError(
+            "club.key must be a lowercase slug using letters, numbers, '-' or '_'"
+        )
+    key = key.strip()
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 100:
+        raise ConfigurationError("club.name must be a non-empty string of at most 100 characters")
+    name = name.strip()
+    if not isinstance(query_terms_raw, list) or not query_terms_raw:
+        raise ConfigurationError("club.query_terms must be a non-empty string array")
+    if len(query_terms_raw) > 20:
+        raise ConfigurationError("club.query_terms cannot contain more than 20 terms")
+    query_terms: list[str] = []
+    for index, term_raw in enumerate(query_terms_raw, 1):
+        if not isinstance(term_raw, str):
+            raise ConfigurationError(f"club.query_terms item #{index} must be a string")
+        term = term_raw.strip()
+        lowered = term.lower()
+        if not term or len(term) > 80:
+            raise ConfigurationError(
+                f"club.query_terms item #{index} must contain 1 to 80 characters"
+            )
+        if any(ord(character) < 32 for character in term) or any(
+            character in term for character in ('"', "(", ")")
+        ):
+            raise ConfigurationError(
+                f"club.query_terms item #{index} contains unsafe query characters"
+            )
+        if lowered in _QUERY_OPERATOR_TERMS or lowered.startswith(
+            _QUERY_OPERATOR_PREFIXES
+        ):
+            raise ConfigurationError(
+                f"club.query_terms item #{index} cannot be an X query operator"
+            )
+        if term not in query_terms:
+            query_terms.append(term)
+    topic_query = " OR ".join(
+        f'"{term}"' if any(character.isspace() for character in term) else term
+        for term in query_terms
+    )
+
+    defaults: dict[str, object] = {
+        "notification_title_prefix": "⚽",
+        "notification_group": f"{name} Transfer Alert",
+        "notification_id_prefix": f"{key}-transfer",
+        "output_language": "English",
+        "timezone_utc_offset_minutes": 0,
+        "timezone_label": "UTC",
+        "source_label": "Source",
+        "time_label": "Time",
+        "open_post_text": "Open the original post on X.",
+    }
+    values = {field: raw.get(field, default) for field, default in defaults.items()}
+    for field in defaults:
+        value = values[field]
+        if field == "notification_title_prefix":
+            if not isinstance(value, str) or len(value.strip()) > 20:
+                raise ConfigurationError(
+                    "club.notification_title_prefix must be a string of at most 20 characters"
+                )
+            values[field] = value.strip()
+        elif field != "timezone_utc_offset_minutes":
+            if not isinstance(value, str) or not value.strip() or len(value.strip()) > 150:
+                raise ConfigurationError(f"club.{field} must be a non-empty string")
+            values[field] = value.strip()
+    offset = values["timezone_utc_offset_minutes"]
+    if type(offset) is not int or not -720 <= offset <= 840:
+        raise ConfigurationError(
+            "club.timezone_utc_offset_minutes must be between -720 and 840"
+        )
+    notification_id_prefix = values["notification_id_prefix"]
+    assert isinstance(notification_id_prefix, str)
+    if not _CLUB_KEY_PATTERN.fullmatch(notification_id_prefix):
+        raise ConfigurationError(
+            "club.notification_id_prefix must be a lowercase slug"
+        )
+    return ClubProfile(
+        key=key,
+        name=name,
+        query_terms=tuple(query_terms),
+        topic_query=topic_query,
+        notification_title_prefix=str(values["notification_title_prefix"]),
+        notification_group=str(values["notification_group"]),
+        notification_id_prefix=notification_id_prefix,
+        output_language=str(values["output_language"]),
+        timezone_utc_offset_minutes=offset,
+        timezone_label=str(values["timezone_label"]),
+        source_label=str(values["source_label"]),
+        time_label=str(values["time_label"]),
+        open_post_text=str(values["open_post_text"]),
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class SourceCatalog:
     path: Path
     topic_query: str
     sources: tuple[Source, ...]
+    club: ClubProfile | None = None
+
+    def __post_init__(self) -> None:
+        if self.club is None:
+            object.__setattr__(self, "club", _legacy_arsenal_profile(self.topic_query))
 
     @classmethod
     def load(cls, path: Path) -> "SourceCatalog":
@@ -326,22 +483,39 @@ class SourceCatalog:
             raise ConfigurationError(f"source catalog does not exist: {path}") from error
         except tomllib.TOMLDecodeError as error:
             raise ConfigurationError(f"invalid source catalog: {error}") from error
-        if data.get("catalog_version") != 1:
+        version = data.get("catalog_version")
+        if version not in {1, 2}:
             raise ConfigurationError("unsupported source catalog version")
-        topic_query = data.get("topic_query")
-        if not isinstance(topic_query, str) or not topic_query.strip():
-            raise ConfigurationError("topic_query must be a non-empty string")
+        if version == 1:
+            topic_query = data.get("topic_query")
+            if not isinstance(topic_query, str) or not topic_query.strip():
+                raise ConfigurationError("topic_query must be a non-empty string")
+            topic_query = topic_query.strip()
+            club = _legacy_arsenal_profile(topic_query)
+        else:
+            root_fields = set(data)
+            expected_root_fields = {"catalog_version", "club", "sources"}
+            if root_fields != expected_root_fields:
+                raise ConfigurationError(
+                    "catalog version 2 root fields mismatch; "
+                    f"missing={sorted(expected_root_fields - root_fields)}, "
+                    f"extra={sorted(root_fields - expected_root_fields)}"
+                )
+            club = _parse_club_profile(data.get("club"))
+            topic_query = club.topic_query
         raw_sources = data.get("sources")
         if not isinstance(raw_sources, list) or not raw_sources:
             raise ConfigurationError("source catalog must contain sources")
-        expected_fields = {
+        required_fields = {
             "key",
             "name",
             "tier",
             "username",
+            "query_mode",
+        }
+        optional_fields = {
             "user_id",
             "enabled",
-            "query_mode",
             "identity_status",
             "verified_at",
             "confirmation_required",
@@ -353,12 +527,23 @@ class SourceCatalog:
         for index, item in enumerate(raw_sources):
             if not isinstance(item, dict):
                 raise ConfigurationError(f"source #{index + 1} must be a table")
-            missing = expected_fields - set(item)
-            extra = set(item) - expected_fields
+            missing = required_fields - set(item)
+            extra = set(item) - required_fields - optional_fields
             if missing or extra:
                 raise ConfigurationError(
                     f"source #{index + 1} fields mismatch; missing={sorted(missing)}, extra={sorted(extra)}"
                 )
+            item = {
+                "user_id": "",
+                "enabled": True,
+                "identity_status": "pending",
+                "verified_at": "",
+                "confirmation_required": False,
+                "confirmed": False,
+                "identity_evidence_url": "",
+                "notes": "",
+                **item,
+            }
             try:
                 query_mode = QueryMode(item["query_mode"])
             except ValueError as error:
@@ -381,17 +566,30 @@ class SourceCatalog:
             bool_fields = ("enabled", "confirmation_required", "confirmed")
             if any(type(item[field]) is not bool for field in bool_fields):
                 raise ConfigurationError(f"source #{index + 1} has a non-boolean field")
-            if not item["key"].strip() or not item["name"].strip() or not item["username"].strip():
-                raise ConfigurationError(f"source #{index + 1} has an empty required value")
+            source_key = item["key"].strip()
+            source_name = item["name"].strip()
+            username = item["username"].strip()
+            if username.startswith("@"):
+                username = username[1:]
+            if not _CLUB_KEY_PATTERN.fullmatch(source_key):
+                raise ConfigurationError(
+                    f"source #{index + 1} key must be a lowercase slug"
+                )
+            if not source_name or any(ord(character) < 32 for character in source_name):
+                raise ConfigurationError(f"source #{index + 1} has an invalid name")
+            if not _X_USERNAME_PATTERN.fullmatch(username):
+                raise ConfigurationError(
+                    f"source {source_key} username must be a valid X username"
+                )
             user_id = item["user_id"].strip()
             if user_id and not user_id.isdigit():
                 raise ConfigurationError(f"source {item['key']} user_id must be numeric")
             sources.append(
                 Source(
-                    key=item["key"].strip(),
-                    name=item["name"].strip(),
+                    key=source_key,
+                    name=source_name,
                     tier=tier,
-                    username=item["username"].strip(),
+                    username=username,
                     user_id=user_id,
                     enabled=item["enabled"],
                     query_mode=query_mode,
@@ -411,7 +609,12 @@ class SourceCatalog:
             raise ConfigurationError("source usernames must be unique")
         if not any(source.tier == 0 for source in sources):
             raise ConfigurationError("the catalog must retain at least one Tier 0 source")
-        return cls(path=path, topic_query=topic_query.strip(), sources=tuple(sources))
+        return cls(
+            path=path,
+            topic_query=topic_query,
+            sources=tuple(sources),
+            club=club,
+        )
 
     @property
     def enabled_sources(self) -> tuple[Source, ...]:

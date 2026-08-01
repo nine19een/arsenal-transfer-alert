@@ -114,10 +114,10 @@ def eligible(
     return Classification.from_mapping(
         {
             "eligible": True,
-            "arsenal_scope_eligible": True,
-            "arsenal_participation": participation,
+            "club_scope_eligible": True,
+            "club_participation": participation,
             "news_origin": news_origin,
-            "translation_zh": translation,
+            "notification_text": translation,
             "reason_code": reason,
             "has_substantive_new_information": True,
         }
@@ -134,10 +134,10 @@ def ineligible(
     return Classification.from_mapping(
         {
             "eligible": False,
-            "arsenal_scope_eligible": scope_eligible,
-            "arsenal_participation": participation,
+            "club_scope_eligible": scope_eligible,
+            "club_participation": participation,
             "news_origin": news_origin,
-            "translation_zh": None,
+            "notification_text": None,
             "reason_code": reason,
             "has_substantive_new_information": False,
         }

@@ -258,10 +258,10 @@ class ClientAndCostTests(unittest.TestCase):
                         "content": json.dumps(
                             {
                                 "eligible": True,
-                                "arsenal_scope_eligible": True,
-                                "arsenal_participation": "buyer/recruiting_club",
+                                "club_scope_eligible": True,
+                                "club_participation": "buyer/recruiting_club",
                                 "news_origin": "first_hand_report",
-                                "translation_zh": "阿森纳已经开启这笔转会的谈判。",
+                                "notification_text": "阿森纳已经开启这笔转会的谈判。",
                                 "reason_code": "transfer_update",
                                 "has_substantive_new_information": True,
                             },
@@ -281,6 +281,7 @@ class ClientAndCostTests(unittest.TestCase):
         classifier = DeepSeekClassifier(
             self.settings,
             self.store,
+            catalog().club,
             transport=transport,
             sleeper=lambda _delay: None,
         )
@@ -293,7 +294,7 @@ class ClientAndCostTests(unittest.TestCase):
         self.assertEqual({"type": "json_object"}, request_body["response_format"])
         self.assertEqual("deepseek-v4-flash", request_body["model"])
         self.assertIn(
-            "Mandatory Arsenal participation gate",
+            "Mandatory target-club participation gate",
             request_body["messages"][0]["content"],
         )
         self.assertIn(
@@ -307,6 +308,10 @@ class ClientAndCostTests(unittest.TestCase):
         user_message = json.loads(
             request_body["messages"][1]["content"].split("\n", 1)[1]
         )
+        self.assertEqual("Arsenal", user_message["target_club"]["name"])
+        self.assertEqual(
+            "Simplified Chinese", user_message["target_club"]["output_language"]
+        )
         self.assertEqual(
             {
                 "referenced_post_id": None,
@@ -316,7 +321,7 @@ class ClientAndCostTests(unittest.TestCase):
             },
             user_message["origin_metadata"],
         )
-        self.assertIn("开启", result.classification.translation_zh)
+        self.assertIn("开启", result.classification.notification_text)
         snapshot = self.store.cost_snapshot(utc_now() - timedelta(days=1))
         self.assertEqual(1, snapshot.deepseek_requests)
         self.assertGreater(snapshot.deepseek_estimated_usd, Decimal("0"))
@@ -341,7 +346,7 @@ class ClientAndCostTests(unittest.TestCase):
         self.assertIn('"if he does not renew, we will be there"', SYSTEM_PROMPT)
         self.assertIn("even when the author co-wrote the linked article", SYSTEM_PROMPT)
         self.assertIn(
-            '"Arsenal are all in for Player X now; the player',
+            '"The target club are all in for Player X now; the player',
             SYSTEM_PROMPT,
         )
 

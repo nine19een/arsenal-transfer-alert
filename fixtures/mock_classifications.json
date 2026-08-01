@@ -1,66 +1,66 @@
 {
   "1001": {
     "eligible": true,
-    "arsenal_scope_eligible": true,
-    "arsenal_participation": "buyer/recruiting_club",
+    "club_scope_eligible": true,
+    "club_participation": "buyer/recruiting_club",
     "news_origin": "first_hand_report",
-    "translation_zh": "据 David Ornstein 报道，阿森纳已就可能引进马特奥·席尔瓦一事与 Northbridge FC 开启谈判。目前尚未达成协议。",
+    "notification_text": "据 David Ornstein 报道，阿森纳已就可能引进马特奥·席尔瓦一事与 Northbridge FC 开启谈判。目前尚未达成协议。",
     "reason_code": "transfer_update",
     "has_substantive_new_information": true
   },
   "1002": {
     "eligible": false,
-    "arsenal_scope_eligible": false,
-    "arsenal_participation": "none",
+    "club_scope_eligible": false,
+    "club_participation": "none",
     "news_origin": "unclear_origin",
-    "translation_zh": null,
+    "notification_text": null,
     "reason_code": "match_lineup_injury_training",
     "has_substantive_new_information": false
   },
   "1004": {
     "eligible": true,
-    "arsenal_scope_eligible": true,
-    "arsenal_participation": "buyer/recruiting_club",
+    "club_scope_eligible": true,
+    "club_participation": "buyer/recruiting_club",
     "news_origin": "substantive_new_detail",
-    "translation_zh": "Charles Watts 补充称，阿森纳商谈的是永久转会而非租借，但谈判仍处于早期。",
+    "notification_text": "Charles Watts 补充称，阿森纳商谈的是永久转会而非租借，但谈判仍处于早期。",
     "reason_code": "substantive_reply_or_quote",
     "has_substantive_new_information": true
   },
   "1005": {
     "eligible": true,
-    "arsenal_scope_eligible": true,
-    "arsenal_participation": "buyer/recruiting_club",
+    "club_scope_eligible": true,
+    "club_participation": "buyer/recruiting_club",
     "news_origin": "first_hand_report",
-    "translation_zh": "据 Fabrizio Romano 报道，阿森纳正在就马特奥·席尔瓦进行谈判。谈判仍在继续，目前尚未达成协议。",
+    "notification_text": "据 Fabrizio Romano 报道，阿森纳正在就马特奥·席尔瓦进行谈判。谈判仍在继续，目前尚未达成协议。",
     "reason_code": "transfer_update",
     "has_substantive_new_information": true
   },
   "1006": {
     "eligible": false,
-    "arsenal_scope_eligible": false,
-    "arsenal_participation": "buyer/recruiting_club",
+    "club_scope_eligible": false,
+    "club_participation": "buyer/recruiting_club",
     "news_origin": "first_hand_report",
-    "translation_zh": null,
+    "notification_text": null,
     "reason_code": "womens_or_youth",
     "has_substantive_new_information": false
   },
   "1007": {
     "eligible": false,
-    "arsenal_scope_eligible": false,
-    "arsenal_participation": "none",
+    "club_scope_eligible": false,
+    "club_participation": "none",
     "news_origin": "commentary_only",
-    "translation_zh": null,
+    "notification_text": null,
     "reason_code": "promotion_or_link_only",
     "has_substantive_new_information": false
   },
   "1008": "__INVALID__",
   "1009": {
     "eligible": false,
-    "arsenal_scope_eligible": false,
-    "arsenal_participation": "none",
+    "club_scope_eligible": false,
+    "club_participation": "none",
     "news_origin": "first_hand_report",
-    "translation_zh": null,
-    "reason_code": "former_arsenal_player_unrelated",
+    "notification_text": null,
+    "reason_code": "former_target_club_player_unrelated",
     "has_substantive_new_information": false
   }
 }

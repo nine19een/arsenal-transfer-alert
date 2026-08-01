@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Arsenal Transfer Alert workflow</title>
+  <desc id="desc">A four-step flow from trusted Tier zero to two X accounts, through official X API and SQLite intake, a strict transfer progress and reporting-origin filter, to a translated Bark notification on a phone.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e18"/>
+      <stop offset="1" stop-color="#11192a"/>
+    </linearGradient>
+    <linearGradient id="redGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ef2638"/>
+      <stop offset="1" stop-color="#d90429"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000000" flood-opacity="0.30"/>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#ffffff" stroke-opacity="0.025" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="1200" rx="46" fill="url(#background)"/>
+  <rect width="1200" height="1200" rx="46" fill="url(#grid)"/>
+  <circle cx="1080" cy="95" r="230" fill="#e30613" opacity="0.10"/>
+  <circle cx="1120" cy="65" r="130" fill="#e30613" opacity="0.08"/>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <g transform="translate(76 66)">
+      <rect width="292" height="44" rx="22" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.13"/>
+      <circle cx="25" cy="22" r="8" fill="#ef2638"/>
+      <circle cx="47" cy="22" r="8" fill="#f5f7fb"/>
+      <text x="70" y="29" fill="#f5f7fb" font-size="18" font-weight="600" letter-spacing="2.2">OPEN SOURCE</text>
+    </g>
+
+    <text x="76" y="177" fill="#f7f8fb" font-size="63" font-weight="750" letter-spacing="-1.8">TRANSFER NEWS.</text>
+    <text x="76" y="246" fill="#ef2638" font-size="63" font-weight="750" letter-spacing="-1.8">ONLY WHEN IT MOVES.</text>
+    <text x="78" y="292" fill="#aeb7c8" font-size="22" font-weight="400">Trusted sources → real progress → your lock screen</text>
+
+    <g filter="url(#shadow)">
+      <rect x="76" y="338" width="1048" height="138" rx="28" fill="#161d2d" stroke="#2a354d" stroke-width="2"/>
+      <circle cx="144" cy="407" r="38" fill="url(#redGlow)"/>
+      <text x="144" y="417" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="700">01</text>
+      <text x="215" y="395" fill="#f7f8fb" font-size="28" font-weight="700" letter-spacing="0.8">TRUSTED X SOURCES</text>
+      <text x="215" y="432" fill="#aeb7c8" font-size="21" font-weight="400">Fixed Tier 0–2 accounts. No algorithmic source guessing.</text>
+      <rect x="938" y="381" width="136" height="52" rx="26" fill="#ef2638" fill-opacity="0.13" stroke="#ef2638" stroke-opacity="0.45"/>
+      <text x="1006" y="414" text-anchor="middle" fill="#ff6472" font-size="17" font-weight="650">WHITELIST</text>
+    </g>
+
+    <path d="M600 476V502" stroke="#ef2638" stroke-width="4" stroke-linecap="round"/>
+    <path d="M588 496L600 510L612 496" fill="none" stroke="#ef2638" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g filter="url(#shadow)">
+      <rect x="76" y="510" width="1048" height="138" rx="28" fill="#161d2d" stroke="#2a354d" stroke-width="2"/>
+      <circle cx="144" cy="579" r="38" fill="url(#redGlow)"/>
+      <text x="144" y="589" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="700">02</text>
+      <text x="215" y="567" fill="#f7f8fb" font-size="28" font-weight="700" letter-spacing="0.8">DURABLE INTAKE</text>
+      <text x="215" y="604" fill="#aeb7c8" font-size="21" font-weight="400">Official X API → SQLite first → cursor advances safely.</text>
+      <rect x="946" y="553" width="128" height="52" rx="26" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.16"/>
+      <text x="1010" y="586" text-anchor="middle" fill="#dfe4ed" font-size="15" font-weight="650">RESUME-SAFE</text>
+    </g>
+
+    <path d="M600 648V674" stroke="#ef2638" stroke-width="4" stroke-linecap="round"/>
+    <path d="M588 668L600 682L612 668" fill="none" stroke="#ef2638" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g filter="url(#shadow)">
+      <rect x="76" y="682" width="1048" height="162" rx="28" fill="#161d2d" stroke="#ef2638" stroke-opacity="0.55" stroke-width="2"/>
+      <circle cx="144" cy="751" r="38" fill="url(#redGlow)"/>
+      <text x="144" y="761" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="700">03</text>
+      <text x="215" y="739" fill="#f7f8fb" font-size="28" font-weight="700" letter-spacing="0.8">STRICT SIGNAL GATE</text>
+      <text x="215" y="776" fill="#aeb7c8" font-size="21" font-weight="400">Club scope · substantive progress · reporting origin</text>
+      <text x="215" y="812" fill="#ff7a86" font-size="18" font-weight="550">Filters reposts, vague interest, relays and promo-only posts.</text>
+      <rect x="922" y="721" width="152" height="60" rx="30" fill="#ef2638"/>
+      <text x="998" y="747" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="650">DEEPSEEK</text>
+      <text x="998" y="768" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="650">FAILS CLOSED</text>
+    </g>
+
+    <path d="M600 844V870" stroke="#ef2638" stroke-width="4" stroke-linecap="round"/>
+    <path d="M588 864L600 878L612 864" fill="none" stroke="#ef2638" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g filter="url(#shadow)">
+      <rect x="76" y="878" width="1048" height="138" rx="28" fill="#f5f7fb"/>
+      <circle cx="144" cy="947" r="38" fill="url(#redGlow)"/>
+      <text x="144" y="957" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="700">04</text>
+      <text x="215" y="935" fill="#111827" font-size="28" font-weight="750" letter-spacing="0.8">BARK ALERT</text>
+      <text x="215" y="972" fill="#4b5568" font-size="21" font-weight="400">Faithful translation · original link · restart-safe deduplication</text>
+      <g transform="translate(987 908)">
+        <rect width="58" height="78" rx="13" fill="#111827"/>
+        <rect x="6" y="8" width="46" height="56" rx="7" fill="#ef2638"/>
+        <circle cx="29" cy="70" r="4" fill="#f5f7fb" opacity="0.75"/>
+        <path d="M18 27H40M18 38H36M18 49H31" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <text x="600" y="1082" text-anchor="middle" fill="#f7f8fb" font-size="23" font-weight="650" letter-spacing="2.6">ARSENAL-READY · ANY CLUB VIA ONE TOML FILE</text>
+    <text x="600" y="1124" text-anchor="middle" fill="#8994a8" font-size="18" font-weight="400">github.com/nine19een/arsenal-transfer-alert</text>
+
+    <rect x="76" y="1158" width="1048" height="2" fill="#ffffff" opacity="0.08"/>
+    <text x="76" y="1188" fill="#7f8ba0" font-size="14" font-weight="500" letter-spacing="1.2">INDEPENDENT SUPPORTER PROJECT · NOT AFFILIATED WITH ARSENAL, X, DEEPSEEK OR BARK</text>
+  </g>
+</svg>

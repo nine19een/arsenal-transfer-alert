@@ -115,6 +115,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _doctor(settings: Settings) -> int:
     catalog = SourceCatalog.load(settings.source_config_path)
+    assert catalog.club is not None
     queries = catalog.build_queries()
     live_ready = True
     live_ready_error: str | None = None
@@ -131,6 +132,16 @@ def _doctor(settings: Settings) -> int:
         "paid_api_calls_enabled": settings.paid_api_calls_enabled,
         "bark_send_enabled": settings.bark_send_enabled,
         "database_path": str(settings.db_path),
+        "club": {
+            "key": catalog.club.key,
+            "name": catalog.club.name,
+            "query_terms": list(catalog.club.query_terms),
+            "output_language": catalog.club.output_language,
+            "notification_group": (
+                settings.bark_group or catalog.club.notification_group
+            ),
+        },
+        "topic_query": catalog.topic_query,
         "sources": len(catalog.enabled_sources),
         "tiers": sorted({source.tier for source in catalog.enabled_sources}),
         "query_lengths": {spec.key: len(spec.query) for spec in queries},

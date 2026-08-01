@@ -1,9 +1,20 @@
-catalog_version = 1
+catalog_version = 2
 
-# This is deliberately a narrow candidate query. It keeps general-media reads
-# within the $10 budget while still covering the normal Arsenal identifiers.
-# Change only after a paid dry-run and cost/recall review.
-topic_query = "Arsenal OR #AFC OR Gunners"
+# This repository remains ready to run as the Arsenal edition. To follow another
+# club, copy config/sources.example.toml and change only [club] plus [[sources]].
+[club]
+key = "arsenal"
+name = "Arsenal"
+query_terms = ["Arsenal", "#AFC", "Gunners"]
+notification_title_prefix = "🔴⚪"
+notification_group = "Arsenal Transfer Alert"
+notification_id_prefix = "arsenal-transfer"
+output_language = "Simplified Chinese"
+timezone_utc_offset_minutes = 480
+timezone_label = "北京时间"
+source_label = "来源"
+time_label = "时间"
+open_post_text = "点击通知打开 X 原帖。"
 
 [[sources]]
 key = "arsenal"

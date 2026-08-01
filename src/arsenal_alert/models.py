@@ -58,7 +58,7 @@ INELIGIBLE_REASON_CODES = frozenset(
     {
         "attributed_relay",
         "commentary_only",
-        "former_arsenal_player_unrelated",
+        "former_target_club_player_unrelated",
         "ordinary_team_news",
         "match_lineup_injury_training",
         "womens_or_youth",
@@ -67,17 +67,21 @@ INELIGIBLE_REASON_CODES = frozenset(
         "no_new_facts",
         "unclear_origin",
         "insufficient_own_text",
-        "not_arsenal_mens_first_team_transfer",
+        "not_target_club_mens_first_team_transfer",
     }
 )
 
 
-class ArsenalParticipation(StrEnum):
+class ClubParticipation(StrEnum):
     BUYER_OR_RECRUITING_CLUB = "buyer/recruiting_club"
     SELLER_OR_CURRENT_CLUB = "seller/current_club"
     CONTRACT_PARTY = "contract_party"
     LOAN_OWNER = "loan_owner"
     NONE = "none"
+
+
+# Public compatibility alias for stored fixtures and callers from catalog version 1.
+ArsenalParticipation = ClubParticipation
 
 
 class NewsOrigin(StrEnum):
@@ -124,7 +128,24 @@ class Source:
 
     @property
     def title(self) -> str:
-        return f"🔴⚪ [Tier {self.tier}] {self.name}"
+        return f"[Tier {self.tier}] {self.name}"
+
+
+@dataclass(frozen=True, slots=True)
+class ClubProfile:
+    key: str
+    name: str
+    query_terms: tuple[str, ...]
+    topic_query: str
+    notification_title_prefix: str
+    notification_group: str
+    notification_id_prefix: str
+    output_language: str
+    timezone_utc_offset_minutes: int
+    timezone_label: str
+    source_label: str
+    time_label: str
+    open_post_text: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -197,18 +218,42 @@ class Post:
 @dataclass(frozen=True, slots=True)
 class Classification:
     eligible: bool
-    arsenal_scope_eligible: bool
-    arsenal_participation: ArsenalParticipation
+    club_scope_eligible: bool
+    club_participation: ClubParticipation
     news_origin: NewsOrigin
-    translation_zh: str | None
+    notification_text: str | None
     reason_code: str
     has_substantive_new_information: bool
+
+    @property
+    def arsenal_scope_eligible(self) -> bool:
+        """Compatibility view for catalog-version-1 callers."""
+        return self.club_scope_eligible
+
+    @property
+    def arsenal_participation(self) -> ClubParticipation:
+        """Compatibility view for catalog-version-1 callers."""
+        return self.club_participation
+
+    @property
+    def translation_zh(self) -> str | None:
+        """Compatibility view for the former Chinese-only output field."""
+        return self.notification_text
 
     @classmethod
     def from_mapping(cls, value: Any) -> "Classification":
         if not isinstance(value, dict):
             raise ValueError("classification must be a JSON object")
-        expected = {
+        generic_fields = {
+            "eligible",
+            "club_scope_eligible",
+            "club_participation",
+            "news_origin",
+            "notification_text",
+            "reason_code",
+            "has_substantive_new_information",
+        }
+        legacy_fields = {
             "eligible",
             "arsenal_scope_eligible",
             "arsenal_participation",
@@ -217,73 +262,83 @@ class Classification:
             "reason_code",
             "has_substantive_new_information",
         }
-        if set(value) != expected:
+        fields = set(value)
+        if fields == generic_fields:
+            scope_eligible = value["club_scope_eligible"]
+            participation_raw = value["club_participation"]
+            notification_text = value["notification_text"]
+        elif fields == legacy_fields:
+            scope_eligible = value["arsenal_scope_eligible"]
+            participation_raw = value["arsenal_participation"]
+            notification_text = value["translation_zh"]
+        else:
             raise ValueError("classification JSON has missing or extra fields")
         eligible = value["eligible"]
-        scope_eligible = value["arsenal_scope_eligible"]
-        participation_raw = value["arsenal_participation"]
         news_origin_raw = value["news_origin"]
-        translation = value["translation_zh"]
         reason_code = value["reason_code"]
         has_new = value["has_substantive_new_information"]
         if type(eligible) is not bool:
             raise ValueError("eligible must be a JSON boolean")
         if type(scope_eligible) is not bool:
-            raise ValueError("arsenal_scope_eligible must be a JSON boolean")
+            raise ValueError("club_scope_eligible must be a JSON boolean")
         if type(has_new) is not bool:
             raise ValueError("has_substantive_new_information must be a JSON boolean")
         if not isinstance(reason_code, str):
             raise ValueError("reason_code must be a string")
+        reason_code = {
+            "former_arsenal_player_unrelated": "former_target_club_player_unrelated",
+            "not_arsenal_mens_first_team_transfer": (
+                "not_target_club_mens_first_team_transfer"
+            ),
+        }.get(reason_code, reason_code)
         try:
-            participation = ArsenalParticipation(participation_raw)
+            participation = ClubParticipation(participation_raw)
         except (TypeError, ValueError) as error:
-            raise ValueError("arsenal_participation is invalid") from error
+            raise ValueError("club_participation is invalid") from error
         try:
             news_origin = NewsOrigin(news_origin_raw)
         except (TypeError, ValueError) as error:
             raise ValueError("news_origin is invalid") from error
-        if participation is ArsenalParticipation.NONE and scope_eligible:
-            raise ValueError(
-                "arsenal_scope_eligible requires Arsenal to be a current participant"
-            )
+        if participation is ClubParticipation.NONE and scope_eligible:
+            raise ValueError("club_scope_eligible requires the target club to participate")
         if eligible:
-            if not scope_eligible or participation is ArsenalParticipation.NONE:
-                raise ValueError(
-                    "eligible result requires the Arsenal scope gate to pass"
-                )
+            if not scope_eligible or participation is ClubParticipation.NONE:
+                raise ValueError("eligible result requires the club scope gate to pass")
             if news_origin not in ALLOWED_NEWS_ORIGINS:
                 raise ValueError("eligible result requires an allowed news_origin")
             if reason_code not in ELIGIBLE_REASON_CODES:
                 raise ValueError("eligible result has an unsupported reason_code")
             if not has_new:
                 raise ValueError("eligible result must contain substantive new information")
-            if not isinstance(translation, str) or not translation.strip():
-                raise ValueError("eligible result must contain a Chinese translation")
-            if not any("\u3400" <= character <= "\u9fff" for character in translation):
-                raise ValueError("eligible translation must contain Chinese text")
-            if len(translation) > 2_500:
-                raise ValueError("translation is too long for a mobile notification")
+            if not isinstance(notification_text, str) or not notification_text.strip():
+                raise ValueError("eligible result must contain notification_text")
+            if len(notification_text) > 2_500:
+                raise ValueError("notification_text is too long for a mobile notification")
         else:
             if reason_code not in INELIGIBLE_REASON_CODES:
                 raise ValueError("ineligible result has an unsupported reason_code")
-            if translation is not None:
-                raise ValueError("ineligible result must set translation_zh to null")
+            if notification_text is not None:
+                raise ValueError("ineligible result must set notification_text to null")
             if (
-                reason_code == "former_arsenal_player_unrelated"
-                and participation is not ArsenalParticipation.NONE
+                reason_code == "former_target_club_player_unrelated"
+                and participation is not ClubParticipation.NONE
             ):
                 raise ValueError(
-                    "former_arsenal_player_unrelated requires arsenal_participation=none"
+                    "former_target_club_player_unrelated requires club_participation=none"
                 )
             if reason_code in ORIGIN_FILTER_REASON_CODES:
                 if news_origin.value != reason_code:
                     raise ValueError("origin filter reason must match news_origin")
         return cls(
             eligible=eligible,
-            arsenal_scope_eligible=scope_eligible,
-            arsenal_participation=participation,
+            club_scope_eligible=scope_eligible,
+            club_participation=participation,
             news_origin=news_origin,
-            translation_zh=translation.strip() if isinstance(translation, str) else None,
+            notification_text=(
+                notification_text.strip()
+                if isinstance(notification_text, str)
+                else None
+            ),
             reason_code=reason_code,
             has_substantive_new_information=has_new,
         )
@@ -292,10 +347,10 @@ class Classification:
         return json.dumps(
             {
                 "eligible": self.eligible,
-                "arsenal_scope_eligible": self.arsenal_scope_eligible,
-                "arsenal_participation": self.arsenal_participation.value,
+                "club_scope_eligible": self.club_scope_eligible,
+                "club_participation": self.club_participation.value,
                 "news_origin": self.news_origin.value,
-                "translation_zh": self.translation_zh,
+                "notification_text": self.notification_text,
                 "reason_code": self.reason_code,
                 "has_substantive_new_information": self.has_substantive_new_information,
             },

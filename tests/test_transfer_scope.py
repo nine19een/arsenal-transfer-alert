@@ -165,7 +165,7 @@ class TransferScopeGateTests(unittest.TestCase):
     def test_local_validation_rejects_eligible_result_with_no_participation(self) -> None:
         with self.assertRaisesRegex(
             ValueError,
-            "requires the Arsenal scope gate to pass",
+            "requires the club scope gate to pass",
         ):
             Classification.from_mapping(
                 {
@@ -182,7 +182,7 @@ class TransferScopeGateTests(unittest.TestCase):
     def test_former_player_reason_requires_no_participation(self) -> None:
         with self.assertRaisesRegex(
             ValueError,
-            "requires arsenal_participation=none",
+            "requires club_participation=none",
         ):
             Classification.from_mapping(
                 {
