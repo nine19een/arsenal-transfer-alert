@@ -51,7 +51,8 @@ Mandatory Arsenal participation gate:
 First identify the current transfer, loan, or contract event described by the author's
 own text. Then assign exactly one arsenal_participation value:
 - buyer/recruiting_club: Arsenal are signing, re-signing, pursuing, contacting, bidding
-  for, negotiating for, or actively considering the player
+  for, negotiating for, or currently taking another concrete recruiting step for the
+  player
 - seller/current_club: the player currently belongs to Arsenal's men's first team and
   may leave, be sold, released, or transferred
 - contract_party: Arsenal are changing, renewing, or terminating a current men's
@@ -78,7 +79,43 @@ has_substantive_new_information=false, and use commentary_only or ordinary_team_
 This rule does not apply when the Post itself announces or confirms the move, or adds
 a substantive new transfer fact.
 
-Mandatory news-origin gate, evaluated only after the Arsenal scope gate:
+Mandatory substantive-progress gate, evaluated after the Arsenal participation gate
+and before the news-origin gate:
+A Post being transfer-related is not enough. The author's own text must report a
+present, concrete new development in the transfer, loan, or contract situation. Source
+Tier, first-hand authorship, and a linked article cannot substitute for that development.
+
+Qualifying developments include a newly reported current active pursuit, contact,
+enquiry, approach, bid or offer, talks or negotiations, agreement, medical, scheduled
+near-term decision, club/player decision, withdrawal, denial, or a concrete change to
+terms, timing, or deal status.
+
+The following do not pass this gate on their own:
+- admiration, liking a player, a dream target, watchlist, scouting, monitoring, general
+  interest, or discussion of suitability
+- a future contingent intention such as "if he does not renew, we will be there",
+  "Arsenal would be interested", or "the player could/may move" when the condition has
+  not occurred and no current Arsenal pursuit, contact, bid, talks, or decision is reported
+- a question, roundup, "what we are hearing" teaser, article headline, free-to-read
+  invitation, podcast/show plug, or link promotion when the remaining text contains no
+  qualifying present development
+
+This applies even when the author co-wrote the linked article and even for Tier 0, 1, or
+2 sources. Do not use a linked URL, article title, byline, or promotional framing to fill
+in progress absent from author_own_text. Use eligible=false,
+has_substantive_new_information=false, translation_zh=null, and normally
+promotion_or_link_only or no_new_facts.
+
+Calibration examples:
+- Reject: "The coach loves Player X. If he does not renew with his club, we will be
+  there" followed by "what we are hearing", "free to read", and an article link. This
+  is admiration plus a hypothetical future condition, not current transfer progress.
+- Accept, subject to the origin gate: "Arsenal are all in for Player X now; the player
+  is attracted by the move; renewal talks are scheduled in the coming days." This
+  reports current pursuit and a concrete near-term status while preserving uncertainty.
+
+Mandatory news-origin gate, evaluated only after the Arsenal participation and
+substantive-progress gates:
 - first_hand_report: the author or named media outlet is publishing its own original
   reporting
 - independent_confirmation: the author explicitly says their own sources independently
@@ -108,7 +145,8 @@ the current author's own report and may be notified separately.
 Eligible scope:
 - Arsenal men's first-team incoming/outgoing transfers
 - loans, contract renewals, terminations
-- bids, contact, talks, agreements, medicals, official announcements
+- newly reported active pursuit, bids, contact, talks, agreements, medicals, official
+  announcements
 - failed deals or withdrawal from talks
 - explicit denials or important clarifications from an authoritative source
 - a substantive new transfer fact personally added in a reply or quote Post
@@ -118,6 +156,8 @@ Ineligible scope:
 - women's football or academy/youth
 - tactics or match opinions
 - podcasts, shows, article promotion, or link-only teasers
+- admiration, monitoring, general interest, or hypothetical future intent with no
+  present concrete recruiting action
 - repetition, old news, commentary with no new fact
 - post-transfer thanks, welcome, praise, evaluation, or comparison with no new deal fact
 - emoji-only, simple agreement, or promotional quote text
@@ -152,9 +192,10 @@ insufficient_own_text, not_arsenal_mens_first_team_transfer
 
 Before returning eligible=true, verify all conditions in this exact order:
 1. arsenal_scope_eligible is true and arsenal_participation is not none;
-2. news_origin is first_hand_report, independent_confirmation, or
-   substantive_new_detail; and
-3. has_substantive_new_information is true.
+2. the author's own text passes the substantive-progress gate and
+   has_substantive_new_information is true; and
+3. news_origin is first_hand_report, independent_confirmation, or
+   substantive_new_detail.
 
 Do not invent an Arsenal role that the author's text does not state. Translation must
 not add Arsenal involvement absent from the original text.

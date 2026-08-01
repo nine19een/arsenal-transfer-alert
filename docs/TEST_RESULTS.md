@@ -1,6 +1,6 @@
 # 验证结果
 
-- 验证日期：2026-07-30
+- 验证日期：2026-08-01
 - 环境：Windows / Python 3.14.4
 - 本轮离线测试外部调用：0 次
 - 受控集成验证：已分别完成真实 X Recent Search、DeepSeek 模型/分类和单次 Bark UTF-8
@@ -18,7 +18,7 @@ python -m unittest discover -s tests -v
 结果：
 
 ```text
-Ran 50 tests in < 3s
+Ran 51 tests in < 3s
 OK
 ```
 
@@ -50,11 +50,13 @@ OK
   可保留；
 - 已完成转会后的感谢、欢迎、评价或比较即使出现 departure/signing 等词，只要没有新的
   交易事实仍会作为背景评论过滤；Post 本身的官宣或新进展不受该规则误伤；
+- 仅有球员喜好、尚未触发的条件性兴趣或“免费阅读/我们听到了什么”文章宣传不再算转会
+  进展；当前积极追求、接触、谈判或近期明确状态变化仍可通过；
 - 官方 X 数字 ID/用户名定期复核和不匹配熔断；
 - 长期运行时价格核对日期过期会阻止继续付费读取；
 - Tier 0–2 配置边界、`.env.example` 空凭据、日志脱敏和仓库密钥扫描。
-- 10 条来源目录记录均有固定数字 ID 和 `verified` 状态；归档禁用的 Guardian Sport 也保留
-  已验证身份，9 条启用来源全部 live-ready。
+- 13 条来源目录记录均有固定数字 ID 和 `verified` 状态；归档禁用的 Guardian Sport 也保留
+  已验证身份，12 条启用来源全部 live-ready。
 
 ## 其他验证
 
@@ -72,6 +74,10 @@ OK
   `-is:retweet`、主题条件、调用量和费用账本按预期工作；
 - DeepSeek：先用 `GET /models` 验证 Key 和 `deepseek-v4-flash`，再在明确费用上限内验证
   `thinking=disabled`、JSON Output、当前 Arsenal 参与方门和一手性门；
+- DeepSeek 进展门：用 2026-08-01 的两条真实入库原文做隔离复测；Gunnerblog 的“喜欢球员
+  + 尚未触发的续约条件 + 免费文章链接”返回 `promotion_or_link_only`，Ornstein 的“当前
+  全力争取 + 球员有意 + 未来几天续约谈判”仍返回 `transfer_update`；两次合计估算
+  `$0.00069818`，未调用 X 或 Bark；
 - Bark：最多一次 HTTP 请求验证生产 JSON POST，确认 `🔴⚪`、中文、英文和换行以 UTF-8
   原样送达；测试后安全开关保持原值；
 - 本地长运行：健康接口持续返回 `live=true`、`ready=true`，轮询成功且无健康告警。

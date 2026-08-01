@@ -261,7 +261,7 @@ class ClientAndCostTests(unittest.TestCase):
                                 "arsenal_scope_eligible": True,
                                 "arsenal_participation": "buyer/recruiting_club",
                                 "news_origin": "first_hand_report",
-                                "translation_zh": "阿森纳可能考虑这笔转会。",
+                                "translation_zh": "阿森纳已经开启这笔转会的谈判。",
                                 "reason_code": "transfer_update",
                                 "has_substantive_new_information": True,
                             },
@@ -285,7 +285,7 @@ class ClientAndCostTests(unittest.TestCase):
             sleeper=lambda _delay: None,
         )
         result = classifier.classify(
-            post("3020", "david_ornstein", "Arsenal may consider a move."),
+            post("3020", "david_ornstein", "Arsenal have opened talks over a move."),
             catalog().by_key()["david_ornstein"],
         )
         request_body = transport.requests[0]["json_body"]
@@ -316,7 +316,7 @@ class ClientAndCostTests(unittest.TestCase):
             },
             user_message["origin_metadata"],
         )
-        self.assertIn("可能", result.classification.translation_zh)
+        self.assertIn("开启", result.classification.translation_zh)
         snapshot = self.store.cost_snapshot(utc_now() - timedelta(days=1))
         self.assertEqual(1, snapshot.deepseek_requests)
         self.assertGreater(snapshot.deepseek_estimated_usd, Decimal("0"))
@@ -332,6 +332,16 @@ class ClientAndCostTests(unittest.TestCase):
         )
         self.assertIn(
             "This rule does not apply when the Post itself announces or confirms the move",
+            SYSTEM_PROMPT,
+        )
+
+    def test_prompt_rejects_conditional_interest_article_promotion(self) -> None:
+        self.assertIn("Mandatory substantive-progress gate", SYSTEM_PROMPT)
+        self.assertIn("A Post being transfer-related is not enough", SYSTEM_PROMPT)
+        self.assertIn('"if he does not renew, we will be there"', SYSTEM_PROMPT)
+        self.assertIn("even when the author co-wrote the linked article", SYSTEM_PROMPT)
+        self.assertIn(
+            '"Arsenal are all in for Player X now; the player',
             SYSTEM_PROMPT,
         )
 

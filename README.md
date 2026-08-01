@@ -7,8 +7,8 @@
 项目没有网页前端。运行时只需要 Python 3.11+ 和一个可持久化的 SQLite 文件；Python
 运行时没有第三方依赖。
 
-> 当前交付状态：完整链路、测试、容器和运维文件已经完成。10 条来源目录记录的官方 X
-> 数字用户 ID 均已于 2026-07-29 复核；其中 9 条参与实时轮询，已归档的 Guardian Sport
+> 当前交付状态：完整链路、测试、容器和运维文件已经完成。13 条来源目录记录的官方 X
+> 数字用户 ID 均已复核；其中 12 条参与实时轮询，已归档的 Guardian Sport
 > 保留记录但禁用。The Athletic 足球账号已经用户确认。项目已完成受控的 X、DeepSeek 和
 > Bark 集成验证，可使用本地 `.env` 进入正式模式；仓库不包含任何真实凭据。
 
@@ -57,6 +57,12 @@ Bark JSON POST（稳定 id=arsenal-transfer-{Post ID}）
   参与当前交易；只有明确重新加盟 Arsenal 才可按引援处理。
 - 已完成转会后的感谢、欢迎、评价、表现讨论或球员比较不算新的转会事实；只有 Post 本身
   官宣、确认交易，或补充新的状态、时间、条款或后续影响时才继续判断。
+- “转会相关”不等于“转会进展”。仅有喜欢、欣赏、关注、观察名单或“如果球员不续约，
+  我们就会参与”一类尚未触发的条件性意向，不得通知；必须出现当前积极追求、接触、询价、
+  报价、谈判、协议、体检、近期已安排决定或交易状态/条款变化等实质新进展。
+- “免费阅读”“我们听到了什么”、文章标题、播客或链接宣传不能借助作者 Tier、共同署名或
+  外链内容补足正文中不存在的进展；宣传正文自身没有上述实质变化时按
+  `promotion_or_link_only` 或 `no_new_facts` 过滤。
 - 白名单身份不等于一手报道。模型必须返回 `first_hand_report`、
   `independent_confirmation`、`substantive_new_detail`、`attributed_relay`、
   `commentary_only` 或 `unclear_origin`；只有前三种可能进入通知。
@@ -104,11 +110,21 @@ Tier 由 `config/sources.toml` 静态提供，DeepSeek 看不到修改 Tier 的�
 | 2 | James McNicholas / Gunnerblog | `@gunnerblog` | `14016912` | 除 repost 外全部 | 已验证、启用 |
 | 2 | The Guardian | `@guardian_sport` | `46403451` | 不参与实时查询 | 已验证、归档禁用 |
 | 2 | The Athletic | `@TheAthleticFC` | `970939705629069312` | Arsenal 主题候选 | 已验证、用户已确认、启用 |
+| 2 | Art de Roché | `@ArtdeRoche` | `779610333145104384` | Arsenal 主题候选 | 已验证、启用 |
+| 2 | David Hytner | `@DaveHytner` | `595406077` | Arsenal 主题候选 | 已验证、启用 |
+| 2 | Jacob Steinberg | `@JacobSteinberg` | `43984593` | Arsenal 主题候选 | 已验证、启用 |
 
 BBC Sport、Sami Mokbel 的 BBC 账号和其他来源均已通过官方 X API 固定数字 ID。
 `@guardian_sport` 是已验证的 Guardian 官方体育账号，但该账号已经归档，不再参与实时
 轮询。The Athletic 的足球官方账号 `@TheAthleticFC` 已完成人工确认；配置保留
 `confirmation_required=true` 作为审计记录，同时设置 `confirmed=true`。
+
+2026-08-01 的扩容仍以已定稿的 [r/Gunners 2025 社区投票](https://www.reddit.com/r/Gunners/comments/1lcgtey/2025_rgunners_tier_list_review_results/)
+和 [Arsenal Mania 2025 来源榜](https://arsenal-mania.com/forum/threads/source-tier-list.37059/)
+为 Tier 2 下限，并用记者的雇主档案交叉核验身份。Art de Roché 是 The Athletic 的 Arsenal
+跟队作者；David Hytner 和 Jacob Steinberg 是 Guardian 的具名足球记者。三者均使用主题
+查询，只补足媒体总号没有转发个人原创报道时的缺口。社区仍列为 Tier 3、评级有冲突或匿名
+ITK 的候选没有因本次扩容被擅自升级。
 
 ### 成本和召回率的明确取舍
 
@@ -201,9 +217,9 @@ DeepSeek 正式调用；只有同时满足 `DRY_RUN=false` 与 `BARK_SEND_ENABLE
 
 ### 2. 用官方 X API 复核数字用户 ID
 
-当前目录的 10 条记录均已固定数字 ID；Guardian Sport 因归档而禁用，其余 9 条是正式轮询
+当前目录的 13 条记录均已固定数字 ID；Guardian Sport 因归档而禁用，其余 12 条是正式轮询
 来源。以下命令仅在用户名、雇主或来源配置变化时重新核验。先保持 Bark 关闭；当前命令只
-读取启用来源，按 9 个 User 资源和上述单价估算约 `$0.09`，运行前仍需明确批准付费调用：
+读取启用来源，按 12 个 User 资源和上述单价估算约 `$0.12`，运行前仍需明确批准付费调用：
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -333,7 +349,7 @@ python -m arsenal_alert cost-report
 示例：
 
 - 1,000 个 Post 资源约 `$5.00`；
-- 9 个启用账号每周复核约 `$0.39/月`；
+- 12 个启用账号每周复核约 `$0.52/月`；
 - 在 `$10` 内可留给 Post 的理论余量约 1,900 条，实际以 Console 为准。
 
 应用保护：

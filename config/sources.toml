@@ -134,11 +134,11 @@ user_id = "46403451"
 enabled = false
 query_mode = "topic"
 identity_status = "verified"
-verified_at = "2026-07-29"
+verified_at = "2026-08-01"
 confirmation_required = false
 confirmed = true
 identity_evidence_url = "https://www.theguardian.com/profile/guardian-sport"
-notes = "Official @guardian_sport account verified but archived; retained in the source catalog and excluded from real-time polling."
+notes = "Official X API reconfirmed that @guardian_sport is archived; retained in the catalog but excluded from polling."
 
 [[sources]]
 key = "the_athletic"
@@ -154,3 +154,48 @@ confirmation_required = true
 confirmed = true
 identity_evidence_url = "https://x.com/TheAthleticFC"
 notes = "User confirmed @TheAthleticFC as the required official football account; official X API numeric ID verification completed."
+
+[[sources]]
+key = "art_de_roche"
+name = "Art de Roche"
+tier = 2
+username = "ArtdeRoche"
+user_id = "779610333145104384"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-08-01"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.nytimes.com/athletic/author/art-de-roche/"
+notes = "Official X API ID verified for The Athletic's Arsenal writer; topic-gated so authored reports are not missed when the outlet account does not repost them."
+
+[[sources]]
+key = "david_hytner"
+name = "David Hytner"
+tier = 2
+username = "DaveHytner"
+user_id = "595406077"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-08-01"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.theguardian.com/profile/davidhytner"
+notes = "Official X API ID verified for The Guardian's chief football correspondent; long record of sourced Arsenal reporting and topic-gated."
+
+[[sources]]
+key = "jacob_steinberg"
+name = "Jacob Steinberg"
+tier = 2
+username = "JacobSteinberg"
+user_id = "43984593"
+enabled = true
+query_mode = "topic"
+identity_status = "verified"
+verified_at = "2026-08-01"
+confirmation_required = false
+confirmed = true
+identity_evidence_url = "https://www.theguardian.com/profile/jacob-steinberg"
+notes = "Official X API ID verified for The Guardian football reporter; included under the outlet's Tier 2 rating and topic-gated."

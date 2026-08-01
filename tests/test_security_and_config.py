@@ -161,7 +161,8 @@ class SecurityAndConfigTests(unittest.TestCase):
     def test_catalog_contains_only_tier_zero_to_two(self) -> None:
         catalog = SourceCatalog.load(ROOT / "config" / "sources.toml")
         self.assertEqual({0, 1, 2}, {source.tier for source in catalog.sources})
-        self.assertEqual(10, len(catalog.sources))
+        self.assertEqual(13, len(catalog.sources))
+        self.assertEqual(12, len(catalog.enabled_sources))
 
     def test_all_enabled_sources_are_identity_ready(self) -> None:
         catalog = SourceCatalog.load(ROOT / "config" / "sources.toml")
@@ -185,6 +186,17 @@ class SecurityAndConfigTests(unittest.TestCase):
         )
         self.assertTrue(athletic.confirmed)
         self.assertEqual("970939705629069312", athletic.user_id)
+        expected_new_ids = {
+            "art_de_roche": "779610333145104384",
+            "david_hytner": "595406077",
+            "jacob_steinberg": "43984593",
+        }
+        actual_new_ids = {
+            source.key: source.user_id
+            for source in catalog.sources
+            if source.key in expected_new_ids
+        }
+        self.assertEqual(expected_new_ids, actual_new_ids)
 
     def test_source_directory_has_no_pending_identity_records(self) -> None:
         catalog = SourceCatalog.load(ROOT / "config" / "sources.toml")
