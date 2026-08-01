@@ -25,15 +25,15 @@
 
   <g font-family="Inter, Segoe UI, Arial, sans-serif">
     <g transform="translate(76 66)">
-      <rect width="292" height="44" rx="22" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.13"/>
+      <rect width="388" height="44" rx="22" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.13"/>
       <circle cx="25" cy="22" r="8" fill="#ef2638"/>
       <circle cx="47" cy="22" r="8" fill="#f5f7fb"/>
-      <text x="70" y="29" fill="#f5f7fb" font-size="18" font-weight="600" letter-spacing="2.2">OPEN SOURCE</text>
+      <text x="70" y="29" fill="#f5f7fb" font-size="18" font-weight="600" letter-spacing="2.2">ARSENAL EDITION · OPEN SOURCE</text>
     </g>
 
-    <text x="76" y="177" fill="#f7f8fb" font-size="63" font-weight="750" letter-spacing="-1.8">TRANSFER NEWS.</text>
+    <text x="76" y="177" fill="#f7f8fb" font-size="58" font-weight="750" letter-spacing="-1.8">ARSENAL TRANSFER ALERT.</text>
     <text x="76" y="246" fill="#ef2638" font-size="63" font-weight="750" letter-spacing="-1.8">ONLY WHEN IT MOVES.</text>
-    <text x="78" y="292" fill="#aeb7c8" font-size="22" font-weight="400">Trusted sources → real progress → your lock screen</text>
+    <text x="78" y="292" fill="#aeb7c8" font-size="22" font-weight="400">Trusted Arsenal sources → real progress → your lock screen</text>
 
     <g filter="url(#shadow)">
       <rect x="76" y="338" width="1048" height="138" rx="28" fill="#161d2d" stroke="#2a354d" stroke-width="2"/>
@@ -90,7 +90,7 @@
       </g>
     </g>
 
-    <text x="600" y="1082" text-anchor="middle" fill="#f7f8fb" font-size="23" font-weight="650" letter-spacing="2.6">ARSENAL-READY · ANY CLUB VIA ONE TOML FILE</text>
+    <text x="600" y="1082" text-anchor="middle" fill="#f7f8fb" font-size="21" font-weight="650" letter-spacing="2.0">BUILT FOR ARSENAL · ANY CLUB &amp; LANGUAGE VIA ONE TOML</text>
     <text x="600" y="1124" text-anchor="middle" fill="#8994a8" font-size="18" font-weight="400">github.com/nine19een/arsenal-transfer-alert</text>
 
     <rect x="76" y="1158" width="1048" height="2" fill="#ffffff" opacity="0.08"/>
