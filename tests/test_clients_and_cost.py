@@ -12,7 +12,11 @@ from unittest.mock import patch
 from arsenal_alert.bark import BarkClient
 from arsenal_alert.cost import XBudgetExceeded, XBudgetGuard
 from arsenal_alert.db import StateStore
-from arsenal_alert.deepseek import SYSTEM_PROMPT, DeepSeekClassifier
+from arsenal_alert.deepseek import (
+    SYSTEM_PROMPT,
+    ClassifierInvalidResponse,
+    DeepSeekClassifier,
+)
 from arsenal_alert.http_transport import HttpResponse, UrllibTransport
 from arsenal_alert.mock import MockXClient
 from arsenal_alert.models import NotificationPayload, QueryCursor, QuerySpec, utc_now
@@ -325,6 +329,136 @@ class ClientAndCostTests(unittest.TestCase):
         snapshot = self.store.cost_snapshot(utc_now() - timedelta(days=1))
         self.assertEqual(1, snapshot.deepseek_requests)
         self.assertGreater(snapshot.deepseek_estimated_usd, Decimal("0"))
+
+    def test_deepseek_repairs_one_locally_invalid_classification(self) -> None:
+        invalid_content = json.dumps(
+            {
+                "eligible": True,
+                "club_scope_eligible": True,
+                "club_participation": "seller/current_club",
+                "news_origin": "attributed_relay",
+                "notification_text": None,
+                "reason_code": "attributed_relay",
+                "has_substantive_new_information": False,
+            },
+            ensure_ascii=False,
+        )
+        repaired_content = json.dumps(
+            {
+                "eligible": True,
+                "club_scope_eligible": True,
+                "club_participation": "buyer/recruiting_club",
+                "news_origin": "substantive_new_detail",
+                "notification_text": "阿森纳现在将加速另一笔引援谈判。",
+                "reason_code": "transfer_update",
+                "has_substantive_new_information": True,
+            },
+            ensure_ascii=False,
+        )
+
+        def completion(content: str, prompt_tokens: int) -> dict[str, Any]:
+            return {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": content},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": prompt_tokens,
+                    "prompt_cache_hit_tokens": 0,
+                    "prompt_cache_miss_tokens": prompt_tokens,
+                    "completion_tokens": 20,
+                },
+            }
+
+        transport = QueueTransport(
+            [
+                response(completion(invalid_content, 100)),
+                response(completion(repaired_content, 140)),
+            ]
+        )
+        classifier = DeepSeekClassifier(
+            self.settings,
+            self.store,
+            catalog().club,
+            transport=transport,
+            sleeper=lambda _delay: None,
+        )
+
+        result = classifier.classify(
+            post(
+                "3021",
+                "fabrizio_romano",
+                "One attributed outgoing deal. Arsenal now accelerate another signing.",
+            ),
+            catalog().by_key()["fabrizio_romano"],
+        )
+
+        self.assertEqual(2, len(transport.requests))
+        repair_messages = transport.requests[1]["json_body"]["messages"]
+        self.assertEqual("user", repair_messages[-1]["role"])
+        self.assertIn(
+            "eligible result requires an allowed news_origin",
+            repair_messages[-1]["content"],
+        )
+        previous_output = repair_messages[-1]["content"].split(
+            "PREVIOUS_MODEL_OUTPUT=", 1
+        )[1]
+        self.assertEqual(invalid_content, json.loads(previous_output))
+        self.assertIn("untrusted data", repair_messages[-1]["content"])
+        self.assertIn("加速", result.classification.notification_text)
+        self.assertEqual(240, result.usage.prompt_tokens)
+        snapshot = self.store.cost_snapshot(utc_now() - timedelta(days=1))
+        self.assertEqual(2, snapshot.deepseek_requests)
+
+    def test_prompt_handles_multiple_transfer_events_independently(self) -> None:
+        self.assertIn("Multi-event Posts", SYSTEM_PROMPT)
+        self.assertIn(
+            "Attribution attached to one event applies only to that\nevent",
+            SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "The phrase \"here we go\" never overrides the origin gate by itself",
+            SYSTEM_PROMPT,
+        )
+
+    def test_deepseek_validation_repair_is_bounded_to_one_call(self) -> None:
+        invalid = {
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {"content": "{}"},
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 10,
+                "prompt_cache_hit_tokens": 0,
+                "prompt_cache_miss_tokens": 10,
+                "completion_tokens": 1,
+            },
+        }
+        transport = QueueTransport([response(invalid), response(invalid)])
+        classifier = DeepSeekClassifier(
+            self.settings,
+            self.store,
+            catalog().club,
+            transport=transport,
+            sleeper=lambda _delay: None,
+        )
+
+        with self.assertRaisesRegex(
+            ClassifierInvalidResponse,
+            "after one repair",
+        ):
+            classifier.classify(
+                post("3022", "fabrizio_romano"),
+                catalog().by_key()["fabrizio_romano"],
+            )
+
+        self.assertEqual(2, len(transport.requests))
+        snapshot = self.store.cost_snapshot(utc_now() - timedelta(days=1))
+        self.assertEqual(2, snapshot.deepseek_requests)
 
     def test_prompt_treats_completed_transfer_reaction_as_background(self) -> None:
         self.assertIn(

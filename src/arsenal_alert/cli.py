@@ -72,6 +72,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="required for retry because Bark may already have delivered the notification",
     )
+    retry_classification = subparsers.add_parser(
+        "retry-classification",
+        help="requeue one classification_error Post after fixing the classifier",
+    )
+    retry_classification.add_argument("post_id")
     return parser
 
 
@@ -105,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
             return _healthcheck(settings)
         if args.command == "resolve-notification":
             return _resolve_notification(args, settings)
+        if args.command == "retry-classification":
+            return _retry_classification(args, settings)
     except (ConfigurationError, ValueError) as error:
         print(f"configuration error: {error}", file=sys.stderr)
         return 2
@@ -250,6 +257,13 @@ def _resolve_notification(args: argparse.Namespace, settings: Settings) -> int:
         store.resolve_uncertain_notification(args.post_id, args.action)
         store.clear_health_flag(f"bark_{args.post_id}")
     print(f"notification {args.post_id} resolved with action {args.action}")
+    return 0
+
+
+def _retry_classification(args: argparse.Namespace, settings: Settings) -> int:
+    with StateStore(settings.db_path) as store:
+        store.retry_failed_classification(args.post_id)
+    print(f"Post {args.post_id} queued for reclassification")
     return 0
 
 

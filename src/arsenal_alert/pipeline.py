@@ -14,7 +14,7 @@ from .bark import (
 from .config import ConfigurationError, Settings, SourceCatalog
 from .cost import XBudgetExceeded, XRequestRateExceeded, billing_cycle_start
 from .db import StateStore
-from .deepseek import ClassifierError
+from .deepseek import ClassifierError, ClassifierInvalidResponse
 from .models import (
     AppMode,
     ClassifierResult,
@@ -299,7 +299,10 @@ class Pipeline:
         error: ClassifierError,
     ) -> None:
         error_code = type(error).__name__
-        if attempt < self.settings.classification_max_attempts:
+        if (
+            not isinstance(error, ClassifierInvalidResponse)
+            and attempt < self.settings.classification_max_attempts
+        ):
             delay = self.settings.classification_retry_base_seconds * (2 ** (attempt - 1))
             self.store.schedule_classification_retry(
                 post_id,

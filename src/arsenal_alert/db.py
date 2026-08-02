@@ -666,6 +666,37 @@ class StateStore:
             last_error=error_code[:200],
         )
 
+    def retry_failed_classification(self, post_id: str) -> None:
+        now_text = isoformat_z(utc_now())
+        with self._lock, self._connection:
+            row = self._connection.execute(
+                """
+                SELECT p.state, n.post_id AS notification_post_id
+                FROM posts AS p
+                LEFT JOIN notifications AS n ON n.post_id = p.post_id
+                WHERE p.post_id = ?
+                """,
+                (post_id,),
+            ).fetchone()
+            if row is None:
+                raise ValueError(f"Post does not exist: {post_id}")
+            if row["state"] != PostState.CLASSIFICATION_ERROR.value:
+                raise ValueError("only a classification_error Post can be retried")
+            if row["notification_post_id"] is not None:
+                raise ValueError("a Post with a notification cannot be reclassified")
+            self._connection.execute(
+                """
+                UPDATE posts
+                SET state = ?, classification_json = NULL,
+                    origin_fingerprint = NULL, news_origin = NULL,
+                    classification_attempts = 0,
+                    next_classification_at = NULL, last_error = NULL,
+                    updated_at = ?
+                WHERE post_id = ?
+                """,
+                (PostState.PENDING.value, now_text, post_id),
+            )
+
     def _update_post(self, post_id: str, **fields: Any) -> None:
         if not fields:
             return

@@ -186,7 +186,7 @@ python -m unittest discover -s tests -v
 5. 同一 Post 重复读取仍只推送一次；
 6. 两位记者分别原创同一事件时推送两次；
 7. 重启后旧消息不重复，停机期新消息可补查；
-8. DeepSeek 无效结果失败关闭；
+8. DeepSeek 无效结果先进行一次带本地校验反馈的修正，仍无效则失败关闭；
 9. Bark 明确临时失败安全重试且不产生正常重复；
 10. `.env.example`、仓库内容和日志不泄露密钥。
 
@@ -439,8 +439,16 @@ Header 或 `.env` 内容。
 | `x_identity_check` | 数字 ID、用户名或 parody 状态不匹配 | 停止正式推送，重新做官方复核 |
 | `x_budget_guard` | 最坏情况会越过应用预算 | 查 Console 和 `cost-report`，等待下个周期 |
 | `x_gap_*` | 停机超过 7 天 | 接受并记录可能缺口；Recent Search 无法补得更早 |
-| `classification_error` | 模型多次无效/异常 | 检查模型 ID、余额、响应格式；没有推送 |
+| `classification_error` | 模型结果经一次校验修正后仍无效，或响应信封异常 | 检查模型 ID、余额、响应格式；没有推送 |
 | `notification_uncertain` | Bark 可能收到但响应丢失 | 先看手机，再人工选择“视为已送达”或承担重复风险重试 |
+
+修好分类器或提示词后，可以只把确认失败的单条 Post 放回分类队列。此命令不会直接调用
+DeepSeek 或 Bark；下一次服务循环仍会重新执行全部严格校验：
+
+```powershell
+$env:DB_PATH = "data/arsenal-alert.sqlite3" # 改成正式实例实际使用的数据库
+python -m arsenal_alert retry-classification 123456789
+```
 
 Bark 不确定通知的人工处理：
 

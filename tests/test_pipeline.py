@@ -171,6 +171,22 @@ class PipelineAcceptanceTests(unittest.TestCase):
         self.assertEqual(PostState.CLASSIFICATION_ERROR, store.post_state("2012"))
         self.assertEqual(0, store.notification_count())
 
+    def test_invalid_deepseek_content_is_not_retried_without_new_feedback(self) -> None:
+        item = post("2015", "sami_mokbel")
+        pipeline, store, classifier, notifier = self.pipeline(
+            [item],
+            {"2015": "__INVALID__"},
+            ignore_cursor=True,
+            classification_max_attempts=3,
+        )
+
+        pipeline.run_cycle()
+        pipeline.run_cycle()
+
+        self.assertEqual(["2015"], classifier.calls)
+        self.assertEqual([], notifier.deliveries)
+        self.assertEqual(PostState.CLASSIFICATION_ERROR, store.post_state("2015"))
+
     def test_successful_reclassification_clears_previous_warning(self) -> None:
         item = post("2016", "charles_watts", "A comment unrelated to transfers.")
         pipeline, store, classifier, notifier = self.pipeline(
@@ -191,16 +207,7 @@ class PipelineAcceptanceTests(unittest.TestCase):
             "commentary_only",
             news_origin="commentary_only",
         )
-        with store._connection:
-            store._connection.execute(
-                """
-                UPDATE posts
-                SET state = ?, classification_attempts = 0,
-                    next_classification_at = NULL, last_error = NULL
-                WHERE post_id = ?
-                """,
-                (PostState.PENDING.value, "2016"),
-            )
+        store.retry_failed_classification("2016")
         pipeline.run_cycle()
 
         self.assertEqual(PostState.FILTERED, store.post_state("2016"))
