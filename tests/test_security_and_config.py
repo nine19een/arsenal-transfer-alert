@@ -221,13 +221,13 @@ class SecurityAndConfigTests(unittest.TestCase):
         settings = settings_for(ROOT / "data" / "unused-test.sqlite3")
 
         self.assertTrue(settings.deepseek_thinking_enabled)
-        self.assertEqual(2048, settings.deepseek_max_tokens)
+        self.assertEqual(8192, settings.deepseek_max_tokens)
 
     def test_deepseek_thinking_rejects_a_truncation_prone_token_limit(self) -> None:
-        with self.assertRaisesRegex(ConfigurationError, "at least 2048"):
+        with self.assertRaisesRegex(ConfigurationError, "at least 8192"):
             settings_for(
                 ROOT / "data" / "unused-test.sqlite3",
-                extra={"DEEPSEEK_MAX_TOKENS": "1024"},
+                extra={"DEEPSEEK_MAX_TOKENS": "4096"},
             )
 
     def test_deepseek_nonthinking_mode_allows_a_smaller_token_limit(self) -> None:

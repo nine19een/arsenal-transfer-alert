@@ -28,7 +28,7 @@ X Recent Search（60 秒轮询，7 天补查）
         ├─ 纯 repost 硬过滤
         ├─ X 编辑链逻辑 Post 去重
         ▼
-DeepSeek V4 Flash（thinking=enabled，JSON Output，max_tokens=2048）
+DeepSeek V4 Flash（thinking=enabled，JSON Output，max_tokens=8192）
         │
         ├─ Arsenal 当前男子一线队转会范围门
         ├─ 一手性门：首发/独立确认/实质性新增
@@ -270,7 +270,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
 DEEPSEEK_API_KEY=...
 DEEPSEEK_THINKING_ENABLED=true
-DEEPSEEK_MAX_TOKENS=2048
+DEEPSEEK_MAX_TOKENS=8192
 DEEPSEEK_PRICE_VERIFIED_AT=YYYY-MM-DD
 ```
 
@@ -282,12 +282,14 @@ DEEPSEEK_PRICE_VERIFIED_AT=YYYY-MM-DD
 {
   "thinking": {"type": "enabled"},
   "response_format": {"type": "json_object"},
-  "max_tokens": 2048
+  "max_tokens": 8192
 }
 ```
 
-思考 token 与最终 JSON 共用 `max_tokens` 上限；配置在思考模式下拒绝低于 2048，并默认使用
-2048，避免较长推理把最终 JSON 截断。思考模式下不会发送无效的 `temperature` 调节参数。
+思考 token 与最终 JSON 共用 `max_tokens` 上限；配置在思考模式下拒绝低于 8192，并默认使用
+8192。线上曾观察到明显非转会的广告 Post 仍跑满 2048 并截断，因此保留四倍余量；按当前
+Flash 输出单价，即使用满 8192，单次输出费用也约为 `$0.0023`。思考模式下不会发送无效的
+`temperature` 调节参数。
 官方 JSON Output 仍可能返回空内容，因此代码不会只相信“合法 JSON”：字段集合、布尔类型、
 原因枚举、翻译是否为空和条件关系都要再次本地校验。无效结果绝不进入 Bark。
 

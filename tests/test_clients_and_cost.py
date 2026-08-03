@@ -297,7 +297,7 @@ class ClientAndCostTests(unittest.TestCase):
         self.assertEqual({"type": "enabled"}, request_body["thinking"])
         self.assertEqual({"type": "json_object"}, request_body["response_format"])
         self.assertEqual("deepseek-v4-flash", request_body["model"])
-        self.assertEqual(2048, request_body["max_tokens"])
+        self.assertEqual(8192, request_body["max_tokens"])
         self.assertNotIn("temperature", request_body)
         self.assertIn(
             "Mandatory target-club participation gate",

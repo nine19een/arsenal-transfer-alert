@@ -40,7 +40,7 @@ OK
 - X 部分响应保留已见 Post 并拒绝把该页当作完整进度；
 - 免费模拟源不会污染真实 X 调用量或费用统计；
 - 查询配置变化后的首次失败不会误沿用旧查询游标；
-- DeepSeek V4 Flash 请求显式开启 thinking、保留 2048 token 推理/JSON 容量并使用 JSON Output；
+- DeepSeek V4 Flash 请求显式开启 thinking、保留 8192 token 推理/JSON 容量并使用 JSON Output；
 - DeepSeek 输出必须声明目标俱乐部当前交易参与角色，本地拒绝
   `eligible=true` 与 `club_participation=none` 的矛盾结果；
 - DeepSeek 还必须声明 `club_scope_eligible` 和严格枚举 `news_origin`；明确转述、评论及
