@@ -666,7 +666,7 @@ class StateStore:
             last_error=error_code[:200],
         )
 
-    def retry_failed_classification(self, post_id: str) -> None:
+    def requeue_classification(self, post_id: str) -> None:
         now_text = isoformat_z(utc_now())
         with self._lock, self._connection:
             row = self._connection.execute(
@@ -680,8 +680,14 @@ class StateStore:
             ).fetchone()
             if row is None:
                 raise ValueError(f"Post does not exist: {post_id}")
-            if row["state"] != PostState.CLASSIFICATION_ERROR.value:
-                raise ValueError("only a classification_error Post can be retried")
+            reclassifiable_states = {
+                PostState.CLASSIFICATION_ERROR.value,
+                PostState.FILTERED.value,
+            }
+            if row["state"] not in reclassifiable_states:
+                raise ValueError(
+                    "only a filtered or classification_error Post can be reclassified"
+                )
             if row["notification_post_id"] is not None:
                 raise ValueError("a Post with a notification cannot be reclassified")
             self._connection.execute(
@@ -696,6 +702,10 @@ class StateStore:
                 """,
                 (PostState.PENDING.value, now_text, post_id),
             )
+
+    def retry_failed_classification(self, post_id: str) -> None:
+        """Compatibility alias for callers using the original recovery method name."""
+        self.requeue_classification(post_id)
 
     def _update_post(self, post_id: str, **fields: Any) -> None:
         if not fields:

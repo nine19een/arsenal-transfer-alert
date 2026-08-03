@@ -74,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     retry_classification = subparsers.add_parser(
         "retry-classification",
-        help="requeue one classification_error Post after fixing the classifier",
+        help="requeue one filtered or classification_error Post after changing the classifier",
     )
     retry_classification.add_argument("post_id")
     return parser
@@ -262,7 +262,7 @@ def _resolve_notification(args: argparse.Namespace, settings: Settings) -> int:
 
 def _retry_classification(args: argparse.Namespace, settings: Settings) -> int:
     with StateStore(settings.db_path) as store:
-        store.retry_failed_classification(args.post_id)
+        store.requeue_classification(args.post_id)
     print(f"Post {args.post_id} queued for reclassification")
     return 0
 

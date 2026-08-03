@@ -217,6 +217,31 @@ class SecurityAndConfigTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             settings.assert_live_prices_fresh()
 
+    def test_deepseek_thinking_defaults_on_with_reasoning_capacity(self) -> None:
+        settings = settings_for(ROOT / "data" / "unused-test.sqlite3")
+
+        self.assertTrue(settings.deepseek_thinking_enabled)
+        self.assertEqual(2048, settings.deepseek_max_tokens)
+
+    def test_deepseek_thinking_rejects_a_truncation_prone_token_limit(self) -> None:
+        with self.assertRaisesRegex(ConfigurationError, "at least 2048"):
+            settings_for(
+                ROOT / "data" / "unused-test.sqlite3",
+                extra={"DEEPSEEK_MAX_TOKENS": "1024"},
+            )
+
+    def test_deepseek_nonthinking_mode_allows_a_smaller_token_limit(self) -> None:
+        settings = settings_for(
+            ROOT / "data" / "unused-test.sqlite3",
+            extra={
+                "DEEPSEEK_THINKING_ENABLED": "false",
+                "DEEPSEEK_MAX_TOKENS": "700",
+            },
+        )
+
+        self.assertFalse(settings.deepseek_thinking_enabled)
+        self.assertEqual(700, settings.deepseek_max_tokens)
+
 
 if __name__ == "__main__":
     unittest.main()

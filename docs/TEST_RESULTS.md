@@ -1,6 +1,6 @@
 # 验证结果
 
-- 验证日期：2026-08-01
+- 验证日期：2026-08-03
 - 环境：Windows / Python 3.14.4
 - 本轮离线测试外部调用：0 次
 - 受控集成验证：已分别完成真实 X Recent Search、DeepSeek 模型/分类和单次 Bark UTF-8
@@ -18,7 +18,7 @@ python -m unittest discover -s tests -v
 结果：
 
 ```text
-Ran 56 tests in < 3s
+Ran 64 tests in < 3s
 OK
 ```
 
@@ -40,11 +40,12 @@ OK
 - X 部分响应保留已见 Post 并拒绝把该页当作完整进度；
 - 免费模拟源不会污染真实 X 调用量或费用统计；
 - 查询配置变化后的首次失败不会误沿用旧查询游标；
-- DeepSeek V4 Flash 请求显式关闭 thinking 并使用 JSON Output；
+- DeepSeek V4 Flash 请求显式开启 thinking、保留 2048 token 推理/JSON 容量并使用 JSON Output；
 - DeepSeek 输出必须声明目标俱乐部当前交易参与角色，本地拒绝
   `eligible=true` 与 `club_participation=none` 的矛盾结果；
-- DeepSeek 还必须声明 `club_scope_eligible` 和严格枚举 `news_origin`；转述、评论及
-  来源不明均失败关闭，白名单身份本身不会绕过一手性门；
+- DeepSeek 还必须声明 `club_scope_eligible` 和严格枚举 `news_origin`；明确转述、评论及
+  来源不明均失败关闭；白名单作者用自己的口吻直接报告事实/状态/判断时默认是一手，明确援引
+  他人的纯转述仍不能绕过一手性门；
 - Arsenal 默认配置快照、第二支球队的查询/提示词/通知参数、v1 配置与旧分类 JSON 兼容，
   以及 X 查询操作符注入拦截；
 - 富安健洋等前 Arsenal 球员在其他俱乐部间转会、普通前球员转会及仅有二次转会分成会被
@@ -52,8 +53,11 @@ OK
   可保留；
 - 已完成转会后的感谢、欢迎、评价或比较即使出现 departure/signing 等词，只要没有新的
   交易事实仍会作为背景评论过滤；Post 本身的官宣或新进展不受该规则误伤；
-- 仅有球员喜好、尚未触发的条件性兴趣或“免费阅读/我们听到了什么”文章宣传不再算转会
-  进展；当前积极追求、接触、谈判或近期明确状态变化仍可通过；
+- 当前兴趣/观察、报价及被拒、谈判、个人条款、体检、官宣、失败和记者给出的 expected/
+  likely/shortly 等当前判断均明确纳入；仅有球员评价、未触发的纯条件假设或无事实的链接宣传
+  仍会过滤；
+- 策略修正后可将单条 `filtered` Post 安全放回分类队列并生成一次通知；已有通知的 Post 仍禁止
+  重分类，保持 Bark 去重边界；
 - 官方 X 数字 ID/用户名定期复核和不匹配熔断；
 - 长期运行时价格核对日期过期会阻止继续付费读取；
 - Tier 0–2 配置边界、`.env.example` 空凭据、日志脱敏和仓库密钥扫描。
@@ -75,11 +79,18 @@ OK
 - X：使用独立 SQLite 数据库执行单轮 Recent Search，确认固定数字 author ID 查询、
   `-is:retweet`、主题条件、调用量和费用账本按预期工作；
 - DeepSeek：先用 `GET /models` 验证 Key 和 `deepseek-v4-flash`，再在明确费用上限内验证
-  `thinking=disabled`、JSON Output、当前 Arsenal 参与方门和一手性门；
+  `thinking=enabled`、JSON Output、当前 Arsenal 参与方门和一手性门；
 - DeepSeek 进展门：用 2026-08-01 的两条真实入库原文做隔离复测；Gunnerblog 的“喜欢球员
   + 尚未触发的续约条件 + 免费文章链接”返回 `promotion_or_link_only`，Ornstein 的“当前
   全力争取 + 球员有意 + 未来几天续约谈判”仍返回 `transfer_update`；两次合计估算
   `$0.00069818`，未调用 X 或 Bark；
+- DeepSeek 思考模式 A/B：对 Romano 2026-08-02 原帖“Bruno Guimarães is expected to
+  become Arsenal player shortly”复测。关闭 thinking 时复现 `no_new_facts` 误判；开启 thinking
+  后已经先得出 eligible 方向，但 700 token 上限会把最终 JSON 截断。启用 thinking 并提高到
+  2048 后，新包容式提示词返回 `eligible=true`、`buyer/recruiting_club`、
+  `first_hand_report`，实际使用 3032 prompt tokens、1120 completion tokens，估算 `$0.00073808`；
+- 该误判 Post 已通过正式 SQLite 队列回放，生成“布鲁诺·吉马良斯预计很快就会成为阿森纳
+  球员。”，Bark 一次发送成功；回放后健康接口为 ready、11 条 sent 通知且无告警；
 - Bark：最多一次 HTTP 请求验证生产 JSON POST，确认 `🔴⚪`、中文、英文和换行以 UTF-8
   原样送达；测试后安全开关保持原值；
 - 本地长运行：健康接口持续返回 `live=true`、`ready=true`，轮询成功且无健康告警。

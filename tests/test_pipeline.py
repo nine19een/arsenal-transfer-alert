@@ -219,6 +219,31 @@ class PipelineAcceptanceTests(unittest.TestCase):
             )
         )
 
+    def test_filtered_post_can_be_reclassified_after_policy_change(self) -> None:
+        item = post(
+            "2017",
+            "fabrizio_romano",
+            "Player X is expected to become an Arsenal player shortly.",
+        )
+        pipeline, store, classifier, notifier = self.pipeline(
+            [item],
+            {
+                "2017": ineligible("no_new_facts"),
+            },
+            ignore_cursor=True,
+        )
+        pipeline.run_cycle()
+        self.assertEqual(PostState.FILTERED, store.post_state("2017"))
+
+        classifier.decisions["2017"] = eligible(
+            "球员 X 预计很快将成为阿森纳球员。"
+        )
+        store.requeue_classification("2017")
+        pipeline.run_cycle()
+
+        self.assertEqual(PostState.NOTIFIED, store.post_state("2017"))
+        self.assertEqual(["2017"], [item.post_id for item in notifier.deliveries])
+
     def test_temporary_bark_failure_retries_without_duplicate_delivery(self) -> None:
         item = post("2013", "david_ornstein")
         notifier = PlannedNotifier(["retry", "success"])

@@ -53,12 +53,14 @@
 核对日官方资料：
 
 - [Models & Pricing](https://api-docs.deepseek.com/quick_start/pricing/)：
-  `deepseek-v4-flash` 与 `deepseek-v4-pro`；Flash 输入/输出更便宜；两者都支持非思考和
+  `deepseek-v4-flash` 与 `deepseek-v4-pro`；Flash 输入/输出更便宜；两者都支持思考/非思考和
   JSON Output。
 - [GET /models](https://api-docs.deepseek.com/api/list-models/) 示例返回
   `deepseek-v4-flash`、`deepseek-v4-pro`。
 - [Chat Completion](https://api-docs.deepseek.com/api/create-chat-completion/)：
-  `thinking.type=disabled` 切换非思考模式；`response_format.type=json_object` 启用 JSON。
+  `thinking.type=enabled` 显式启用思考模式；`response_format.type=json_object` 启用 JSON。
+- [Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode/)：思考模式返回
+  `reasoning_content`，推理 token 与最终回答共同受 `max_tokens` 限制，且温度等采样参数不生效。
 - [JSON Output](https://api-docs.deepseek.com/guides/json_mode/)：提示词必须出现 JSON 并给
   格式示例；仍可能偶发空内容。
 

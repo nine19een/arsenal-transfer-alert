@@ -121,6 +121,7 @@ class Settings:
     deepseek_api_key: str
     deepseek_http_timeout_seconds: int
     deepseek_max_attempts: int
+    deepseek_thinking_enabled: bool
     deepseek_max_tokens: int
     deepseek_price_verified_at: date | None
     deepseek_price_max_age_days: int
@@ -187,7 +188,10 @@ class Settings:
             deepseek_api_key=source.get("DEEPSEEK_API_KEY", "").strip(),
             deepseek_http_timeout_seconds=_int(source, "DEEPSEEK_HTTP_TIMEOUT_SECONDS", 30),
             deepseek_max_attempts=_int(source, "DEEPSEEK_MAX_ATTEMPTS", 3),
-            deepseek_max_tokens=_int(source, "DEEPSEEK_MAX_TOKENS", 700),
+            deepseek_thinking_enabled=_bool(
+                source, "DEEPSEEK_THINKING_ENABLED", True
+            ),
+            deepseek_max_tokens=_int(source, "DEEPSEEK_MAX_TOKENS", 2048),
             deepseek_price_verified_at=_optional_date(source, "DEEPSEEK_PRICE_VERIFIED_AT"),
             deepseek_price_max_age_days=_int(source, "DEEPSEEK_PRICE_MAX_AGE_DAYS", 30),
             deepseek_input_cache_hit_usd_per_m=_decimal(
@@ -258,6 +262,10 @@ class Settings:
         invalid = [name for name, value in positive_values.items() if value < 1]
         if invalid:
             raise ConfigurationError(f"these settings must be positive: {', '.join(invalid)}")
+        if self.deepseek_thinking_enabled and self.deepseek_max_tokens < 2048:
+            raise ConfigurationError(
+                "DEEPSEEK_MAX_TOKENS must be at least 2048 when DeepSeek thinking is enabled"
+            )
         if self.app_mode is AppMode.LIVE:
             self._validate_live()
 

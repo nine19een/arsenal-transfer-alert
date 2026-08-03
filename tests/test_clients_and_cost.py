@@ -253,7 +253,7 @@ class ClientAndCostTests(unittest.TestCase):
             request.data,
         )
 
-    def test_deepseek_request_disables_thinking_and_validates_json(self) -> None:
+    def test_deepseek_request_enables_thinking_and_validates_json(self) -> None:
         payload = {
             "choices": [
                 {
@@ -294,9 +294,11 @@ class ClientAndCostTests(unittest.TestCase):
             catalog().by_key()["david_ornstein"],
         )
         request_body = transport.requests[0]["json_body"]
-        self.assertEqual({"type": "disabled"}, request_body["thinking"])
+        self.assertEqual({"type": "enabled"}, request_body["thinking"])
         self.assertEqual({"type": "json_object"}, request_body["response_format"])
         self.assertEqual("deepseek-v4-flash", request_body["model"])
+        self.assertEqual(2048, request_body["max_tokens"])
+        self.assertNotIn("temperature", request_body)
         self.assertIn(
             "Mandatory target-club participation gate",
             request_body["messages"][0]["content"],
@@ -306,7 +308,7 @@ class ClientAndCostTests(unittest.TestCase):
             request_body["messages"][0]["content"],
         )
         self.assertIn(
-            'Merely writing "Exclusive"',
+            "defaults to first_hand_report",
             request_body["messages"][0]["content"],
         )
         user_message = json.loads(
@@ -474,13 +476,19 @@ class ClientAndCostTests(unittest.TestCase):
             SYSTEM_PROMPT,
         )
 
-    def test_prompt_rejects_conditional_interest_article_promotion(self) -> None:
-        self.assertIn("Mandatory substantive-progress gate", SYSTEM_PROMPT)
-        self.assertIn("A Post being transfer-related is not enough", SYSTEM_PROMPT)
-        self.assertIn('"if he does not renew, we will be there"', SYSTEM_PROMPT)
-        self.assertIn("even when the author co-wrote the linked article", SYSTEM_PROMPT)
+    def test_prompt_includes_early_and_judgment_based_transfer_updates(self) -> None:
+        self.assertIn("Inclusive live-transfer-update gate", SYSTEM_PROMPT)
+        self.assertIn("personal terms being discussed, agreed, rejected", SYSTEM_PROMPT)
+        self.assertIn("a bid or offer being prepared, submitted, improved", SYSTEM_PROMPT)
+        self.assertIn("a medical being arranged, scheduled, underway", SYSTEM_PROMPT)
         self.assertIn(
-            '"The target club are all in for Player X now; the player',
+            '"Player X is expected to become a target-club player shortly"',
+            SYSTEM_PROMPT,
+        )
+        self.assertIn("defaults to first_hand_report", SYSTEM_PROMPT)
+        self.assertIn("does not need phrases such as \"my sources\"", SYSTEM_PROMPT)
+        self.assertIn(
+            'club would be interested if a condition later occurs"',
             SYSTEM_PROMPT,
         )
 

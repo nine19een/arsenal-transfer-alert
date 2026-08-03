@@ -5,7 +5,7 @@
 > 本手册中的示例仍以仓库自带的 Arsenal 版为准。
 
 一个可长期运行的个人后台服务：仅通过 X 官方 API 读取固定 r/Gunners Tier 0–2
-消息源，由 DeepSeek V4 Flash 的非思考模式筛选阿森纳男子一线队转会消息并忠实翻译，
+消息源，由 DeepSeek V4 Flash 的思考模式筛选阿森纳男子一线队转会消息并忠实翻译，
 再通过 Bark 推送到 iPhone。
 
 项目没有网页前端。运行时只需要 Python 3.11+ 和一个可持久化的 SQLite 文件；Python
@@ -28,7 +28,7 @@ X Recent Search（60 秒轮询，7 天补查）
         ├─ 纯 repost 硬过滤
         ├─ X 编辑链逻辑 Post 去重
         ▼
-DeepSeek V4 Flash（thinking=disabled，JSON Output）
+DeepSeek V4 Flash（thinking=enabled，JSON Output，max_tokens=2048）
         │
         ├─ Arsenal 当前男子一线队转会范围门
         ├─ 一手性门：首发/独立确认/实质性新增
@@ -61,13 +61,16 @@ Bark JSON POST（稳定 id=arsenal-transfer-{Post ID}）
   参与当前交易；只有明确重新加盟 Arsenal 才可按引援处理。
 - 已完成转会后的感谢、欢迎、评价、表现讨论或球员比较不算新的转会事实；只有 Post 本身
   官宣、确认交易，或补充新的状态、时间、条款或后续影响时才继续判断。
-- “转会相关”不等于“转会进展”。仅有喜欢、欣赏、关注、观察名单或“如果球员不续约，
-  我们就会参与”一类尚未触发的条件性意向，不得通知；必须出现当前积极追求、接触、询价、
-  报价、谈判、协议、体检、近期已安排决定或交易状态/条款变化等实质新进展。
+- 判断门采用包容式实时进展策略：当前兴趣/观察、询价、报价及被拒、谈判、个人条款、协议、
+  体检、行程/文件安排、交易障碍、失败、官宣，以及记者以 expected、likely、set to、shortly
+  等词给出的当前判断都通知，并原样保留不确定性。只有纯球员评价、尚未触发的假设条件且没有
+  当前兴趣/动作/状态/判断时才过滤。
 - “免费阅读”“我们听到了什么”、文章标题、播客或链接宣传不能借助作者 Tier、共同署名或
   外链内容补足正文中不存在的进展；宣传正文自身没有上述实质变化时按
   `promotion_or_link_only` 或 `no_new_facts` 过滤。
-- 白名单身份不等于一手报道。模型必须返回 `first_hand_report`、
+- 白名单记者用自己的口吻直接断言转会事实、状态或判断时，默认视为 `first_hand_report`，
+  不要求额外写出 “my sources” 或 “exclusive”；但白名单身份不会把明确援引他人的纯转述变成
+  一手报道。模型必须返回 `first_hand_report`、
   `independent_confirmation`、`substantive_new_detail`、`attributed_relay`、
   `commentary_only` 或 `unclear_origin`；只有前三种可能进入通知。
 - 原始报道指纹优先采用被引用 Post ID，其次采用 X API `entities` 中的规范化外部文章
@@ -85,7 +88,7 @@ Bark JSON POST（稳定 id=arsenal-transfer-{Post ID}）
 ├─ fixtures/                        # 免费模拟 X 数据和模型结果
 ├─ src/arsenal_alert/
 │  ├─ x_api.py                      # X Recent Search、分页、重试
-│  ├─ deepseek.py                   # 非思考 JSON 分类和翻译
+│  ├─ deepseek.py                   # 思考模式 JSON 分类和翻译
 │  ├─ origin.py                     # 原始报道指纹和文章 URL 规范化
 │  ├─ bark.py                       # Bark 投递语义
 │  ├─ db.py                         # SQLite 状态、去重和用量账本
@@ -190,7 +193,7 @@ python -m unittest discover -s tests -v
 9. Bark 明确临时失败安全重试且不产生正常重复；
 10. `.env.example`、仓库内容和日志不泄露密钥。
 
-另有 X 分页、最坏情况预算预授权、DeepSeek `thinking=disabled`、严格 JSON、本地 Tier
+另有 X 分页、最坏情况预算预授权、DeepSeek `thinking=enabled`、推理容量下限、严格 JSON、本地 Tier
 边界和 Arsenal 当前交易参与门测试。参与门覆盖前球员转会其他俱乐部、明确回归、现役球员
 离队、引援、外租球员变化、二次转会分成、女足、青训和普通新闻。一手性测试覆盖媒体自有
 独家、纯 Repost、无新增转述、独立确认、同链接实质性新增、同原始报道持久化去重，以及
@@ -266,20 +269,25 @@ OpenAI 兼容的 `/chat/completions`，所有连接参数都来自环境变量�
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
 DEEPSEEK_API_KEY=...
+DEEPSEEK_THINKING_ENABLED=true
+DEEPSEEK_MAX_TOKENS=2048
 DEEPSEEK_PRICE_VERIFIED_AT=YYYY-MM-DD
 ```
 
 服务启动时会先调用官方 `GET /models`，确认环境变量中的模型 ID 确实可用。2026-07-29
 官方文档列出 `deepseek-v4-flash` 与 `deepseek-v4-pro`；Flash 当前更便宜，且支持
-非思考模式和 JSON Output。代码显式发送：
+思考模式和 JSON Output。代码显式发送：
 
 ```json
 {
-  "thinking": {"type": "disabled"},
-  "response_format": {"type": "json_object"}
+  "thinking": {"type": "enabled"},
+  "response_format": {"type": "json_object"},
+  "max_tokens": 2048
 }
 ```
 
+思考 token 与最终 JSON 共用 `max_tokens` 上限；配置在思考模式下拒绝低于 2048，并默认使用
+2048，避免较长推理把最终 JSON 截断。思考模式下不会发送无效的 `temperature` 调节参数。
 官方 JSON Output 仍可能返回空内容，因此代码不会只相信“合法 JSON”：字段集合、布尔类型、
 原因枚举、翻译是否为空和条件关系都要再次本地校验。无效结果绝不进入 Bark。
 
@@ -289,6 +297,7 @@ DEEPSEEK_PRICE_VERIFIED_AT=YYYY-MM-DD
 - [DeepSeek 模型列表 API](https://api-docs.deepseek.com/api/list-models/)
 - [DeepSeek JSON Output](https://api-docs.deepseek.com/guides/json_mode/)
 - [DeepSeek Chat Completion](https://api-docs.deepseek.com/api/create-chat-completion/)
+- [DeepSeek Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode/)
 
 ### 4. Bark
 
@@ -442,7 +451,8 @@ Header 或 `.env` 内容。
 | `classification_error` | 模型结果经一次校验修正后仍无效，或响应信封异常 | 检查模型 ID、余额、响应格式；没有推送 |
 | `notification_uncertain` | Bark 可能收到但响应丢失 | 先看手机，再人工选择“视为已送达”或承担重复风险重试 |
 
-修好分类器或提示词后，可以只把确认失败的单条 Post 放回分类队列。此命令不会直接调用
+修好分类器或提示词后，可以把 `classification_error` 或已确认误判为 `filtered` 的单条 Post
+放回分类队列。此命令不会直接调用
 DeepSeek 或 Bark；下一次服务循环仍会重新执行全部严格校验：
 
 ```powershell
